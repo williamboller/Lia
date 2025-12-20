@@ -107,9 +107,9 @@
       letter-spacing: -0.02em;
     }
 
-    /* ✅ rotator ABOVE "In" */
+    /* ✅ Rotator (now UNDER countdown) */
     .rotator{
-      margin: 6px 0 10px;
+      margin: 14px 0 8px; /* 👈 changed */
       min-height: 20px;
       font-size: 15px;
       color: rgba(234,240,255,.92);
@@ -222,9 +222,9 @@
       50%{ opacity:.42; }
     }
 
-    /* ✅ hint moved UNDER countdown */
+    /* hint */
     .hint{
-      margin: 10px 0 18px;
+      margin: 8px 0 18px; /* 👈 slightly tighter since rotator is above it now */
       font-size: 13px;
       color: rgba(183,192,221,.9);
       letter-spacing: .02em;
@@ -267,7 +267,6 @@
       font-weight: 800;
     }
 
-    /* ✅ total values now animate too */
     .statValue{
       font-size:28px;
       font-weight:900;
@@ -363,14 +362,11 @@
 
     <!-- PANEL: COUNTDOWN -->
     <div class="panel active" id="panelCountdown">
+      <!-- ✅ REPLACED CARD START -->
       <div class="card">
         <h1>Will Sees Lia</h1>
 
-        <!-- ✅ rotator ABOVE "In" -->
-        <div class="rotator" id="rotatorCountdown"></div>
-
         <div class="sub">In</div>
-
         <div class="milestone" id="milestoneCountdown"></div>
 
         <div class="countGrid">
@@ -384,7 +380,10 @@
           </div>
         </div>
 
-        <!-- ✅ hint moved under countdown -->
+        <!-- ✅ rotator NOW under countdown -->
+        <div class="rotator" id="rotatorCountdown"></div>
+
+        <!-- ✅ hint under rotator -->
         <div class="hint">✨ Psst… click <b>SECONDS</b> for a secret</div>
 
         <div class="sectionTitle">That’s</div>
@@ -404,6 +403,7 @@
           </div>
         </div>
       </div>
+      <!-- ✅ REPLACED CARD END -->
 
       <div class="soon">See you soon ❤️</div>
     </div>
@@ -413,9 +413,7 @@
       <div class="card">
         <h1>We Saw Each Other</h1>
 
-        <!-- ✅ matching rotator ABOVE subtitle -->
         <div class="rotator" id="rotatorSince"></div>
-
         <div class="sub">Since 12/19/2025 • 4:20 PM ET</div>
 
         <div class="milestone" id="milestoneSince"></div>
@@ -562,7 +560,7 @@
     function setStat(el, newText){
       if (el.textContent !== newText){
         el.textContent = newText;
-        bump(el, "bump"); // same class used for statValue too
+        bump(el, "bump");
       }
     }
 
@@ -598,7 +596,7 @@
       document.querySelectorAll(".countGrid").forEach(g => g.style.borderColor = borderHot);
     }
 
-    // Milestone messages
+    // Milestones
     function milestoneText(secondsRemaining){
       if (secondsRemaining <= 0) return "It’s time. ❤️";
       if (secondsRemaining <= 10) return "Ten seconds.";
@@ -715,7 +713,6 @@
       mLbl.textContent = plural(mins, "Minute", "Minutes");
       sLbl.textContent = plural(secs, "Second", "Seconds");
 
-      // ✅ animate totals too
       setStat(th, fmt(Math.floor(sec/3600)));
       setStat(tm, fmt(Math.floor(sec/60)));
       setStat(ts, fmt(sec));
@@ -723,7 +720,6 @@
       milestoneCountdown.textContent = milestoneText(sec);
       applyTheme(sec);
 
-      // seconds border shifts with urgency
       if (sec <= 3600*24){
         secondsBox.style.borderColor = "rgba(255,105,180,.40)";
       } else if (sec <= 3600*24*7){
@@ -754,7 +750,6 @@
       smLbl.textContent = plural(mins, "Minute", "Minutes");
       ssLbl.textContent = plural(secs, "Second", "Seconds");
 
-      // ✅ animate since totals too
       setStat(sth, fmt(Math.floor(sec/3600)));
       setStat(stm, fmt(Math.floor(sec/60)));
       setStat(sts, fmt(sec));

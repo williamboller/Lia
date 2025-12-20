@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Countdown to Lia</title>
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#111a33;
+      --text:#eaf0ff;
+      --muted:#b7c0dd;
+      --accent:#7aa2ff;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --stroke: rgba(255,255,255,.10);
+      --card: rgba(15, 23, 42, .78);
+      --chip: rgba(122,162,255,.10);
+      --chipStroke: rgba(122,162,255,.25);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px 16px;
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(900px 500px at 15% 20%, rgba(122,162,255,.22), transparent 60%),
+        radial-gradient(900px 500px at 85% 80%, rgba(122,162,255,.16), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+
+    .wrap{
+      width:min(980px, 100%);
+      text-align:center;
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 28px;
+      padding: 44px 22px 36px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    h1{
+      margin: 0 0 12px;
+      font-size: clamp(34px, 5vw, 72px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      font-weight: 900;
+    }
+
+    .sub{
+      font-size: clamp(18px, 2.2vw, 34px);
+      color: var(--muted);
+      margin: 0 0 18px;
+      font-weight: 750;
+    }
+
+    /* ✅ Countdown: stable grid so words never wrap awkwardly */
+    .countGrid{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 12px auto 28px;
+      width: min(860px, 100%);
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(122,162,255,.07);
+      border: 1px solid rgba(122,162,255,.18);
+    }
+
+    .unit{
+      padding: 14px 10px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+    }
+
+    .num{
+      font-size: clamp(26px, 3.2vw, 46px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .lbl{
+      margin-top: 6px;
+      font-size: clamp(12px, 1.4vw, 14px);
+      color: var(--muted);
+      font-weight: 750;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .sectionTitle{
+      margin: 18px 0 14px;
+      font-size: clamp(26px, 3.1vw, 44px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    /* ✅ Conversions area: clean cards */
+    .statsGrid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      width: min(860px, 100%);
+      margin: 0 auto;
+    }
+
+    .statCard{
+      padding: 16px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+    }
+
+    .statLabel{
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      white-space: nowrap;
+    }
+
+    .statValue{
+      font-size: clamp(22px, 2.6vw, 36px);
+      font-weight: 950;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    /* Mobile layout */
+    @media (max-width: 720px){
+      .countGrid{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .statsGrid{
+        grid-template-columns: 1fr;
+      }
+      .statValue{
+        white-space: normal;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Will Sees Lia</h1>
+      <div class="sub">In</div>
+
+      <!-- ✅ Stable Countdown Grid -->
+      <div class="countGrid" aria-live="polite">
+        <div class="unit">
+          <div class="num" id="dNum">—</div>
+          <div class="lbl">Days</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="hNum">—</div>
+          <div class="lbl">Hours</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="mNum">—</div>
+          <div class="lbl">Minutes</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="sNum">—</div>
+          <div class="lbl">Seconds</div>
+        </div>
+      </div>
+
+      <div class="sectionTitle">That’s</div>
+
+      <!-- ✅ Better Conversions Layout -->
+      <div class="statsGrid">
+        <div class="statCard">
+          <div class="statLabel">Total Hours</div>
+          <div class="statValue" id="hoursLine">—</div>
+        </div>
+
+        <div class="statCard">
+          <div class="statLabel">Total Minutes</div>
+          <div class="statValue" id="minutesLine">—</div>
+        </div>
+
+        <div class="statCard">
+          <div class="statLabel">Total Seconds</div>
+          <div class="statValue" id="secondsLine">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Target: Jan 4, 2026 at 12:00 PM Eastern (EST = UTC-5) => 17:00 UTC
+    const TARGET_UTC_MS = Date.UTC(2026, 0, 4, 17, 0, 0);
+
+    const dNum = document.getElementById("dNum");
+    const hNum = document.getElementById("hNum");
+    const mNum = document.getElementById("mNum");
+    const sNum = document.getElementById("sNum");
+
+    const elHours = document.getElementById("hoursLine");
+    const elMinutes = document.getElementById("minutesLine");
+    const elSeconds = document.getElementById("secondsLine");
+
+    const fmtInt = (n) => n.toLocaleString("en-US");
+    const pad2 = (n) => String(n).padStart(2, "0");
+
+    function tick(){
+      const now = Date.now();
+      let diffMs = TARGET_UTC_MS - now;
+
+      if (diffMs <= 0){
+        dNum.textContent = "0";
+        hNum.textContent = "00";
+        mNum.textContent = "00";
+        sNum.textContent = "00";
+        elHours.textContent = "0";
+        elMinutes.textContent = "0";
+        elSeconds.textContent = "0";
+        return;
+      }
+
+      const totalSeconds = Math.floor(diffMs / 1000);
+
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      dNum.textContent = fmtInt(days);
+      hNum.textContent = pad2(hours);
+      mNum.textContent = pad2(minutes);
+      sNum.textContent = pad2(seconds);
+
+      const totalHours = Math.floor(totalSeconds / 3600);
+      const totalMinutes = Math.floor(totalSeconds / 60);
+
+      elHours.textContent = `${fmtInt(totalHours)}`;
+      elMinutes.textContent = `${fmtInt(totalMinutes)}`;
+      elSeconds.textContent = `${fmtInt(totalSeconds)}`;
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>

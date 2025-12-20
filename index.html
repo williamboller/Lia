@@ -14,8 +14,6 @@
       --shadow: 0 20px 60px rgba(0,0,0,.35);
       --stroke: rgba(255,255,255,.10);
       --card: rgba(15, 23, 42, .78);
-      --chip: rgba(122,162,255,.10);
-      --chipStroke: rgba(122,162,255,.25);
     }
 
     *{ box-sizing:border-box; }
@@ -63,12 +61,12 @@
       font-weight: 750;
     }
 
-    /* ✅ Countdown: stable grid so words never wrap awkwardly */
+    /* Countdown grid */
     .countGrid{
       display:grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
-      margin: 12px auto 28px;
+      margin: 12px auto 12px;
       width: min(860px, 100%);
       padding: 14px;
       border-radius: 18px;
@@ -81,6 +79,8 @@
       border-radius: 16px;
       background: rgba(255,255,255,.04);
       border: 1px solid rgba(255,255,255,.09);
+      position: relative;
+      overflow: hidden;
     }
 
     .num{
@@ -101,6 +101,46 @@
       white-space: nowrap;
     }
 
+    /* ✅ Subtle animated glow for the seconds box */
+    .secondsGlow{
+      border-color: rgba(122,162,255,.32);
+    }
+    .secondsGlow::before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(circle at 50% 50%, rgba(122,162,255,.35), transparent 55%);
+      opacity:.35;
+      animation: glowPulse 1.6s ease-in-out infinite;
+      pointer-events:none;
+    }
+    .secondsGlow::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:16px;
+      box-shadow: 0 0 0 rgba(122,162,255,0);
+      animation: glowRing 1.6s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes glowPulse{
+      0%,100%{ transform: scale(.92); opacity:.22; }
+      50%{ transform: scale(1.02); opacity:.38; }
+    }
+    @keyframes glowRing{
+      0%,100%{ box-shadow: 0 0 0 rgba(122,162,255,0); }
+      50%{ box-shadow: 0 0 24px rgba(122,162,255,.25); }
+    }
+
+    /* ✅ "See you soon" line */
+    .soon{
+      margin: 10px 0 22px;
+      font-size: clamp(16px, 2vw, 20px);
+      color: rgba(234,240,255,.92);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
     .sectionTitle{
       margin: 18px 0 14px;
       font-size: clamp(26px, 3.1vw, 44px);
@@ -108,7 +148,7 @@
       letter-spacing: -0.02em;
     }
 
-    /* ✅ Conversions area: clean cards */
+    /* Conversions cards */
     .statsGrid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
@@ -141,17 +181,10 @@
       white-space: nowrap;
     }
 
-    /* Mobile layout */
     @media (max-width: 720px){
-      .countGrid{
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .statsGrid{
-        grid-template-columns: 1fr;
-      }
-      .statValue{
-        white-space: normal;
-      }
+      .countGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .statsGrid{ grid-template-columns: 1fr; }
+      .statValue{ white-space: normal; }
     }
   </style>
 </head>
@@ -161,29 +194,30 @@
       <h1>Will Sees Lia</h1>
       <div class="sub">In</div>
 
-      <!-- ✅ Stable Countdown Grid -->
       <div class="countGrid" aria-live="polite">
         <div class="unit">
           <div class="num" id="dNum">—</div>
-          <div class="lbl">Days</div>
+          <div class="lbl" id="dLbl">Days</div>
         </div>
+
         <div class="unit">
           <div class="num" id="hNum">—</div>
-          <div class="lbl">Hours</div>
+          <div class="lbl" id="hLbl">Hours</div>
         </div>
+
         <div class="unit">
           <div class="num" id="mNum">—</div>
-          <div class="lbl">Minutes</div>
+          <div class="lbl" id="mLbl">Minutes</div>
         </div>
-        <div class="unit">
+
+        <div class="unit secondsGlow">
           <div class="num" id="sNum">—</div>
-          <div class="lbl">Seconds</div>
+          <div class="lbl" id="sLbl">Seconds</div>
         </div>
       </div>
 
       <div class="sectionTitle">That’s</div>
 
-      <!-- ✅ Better Conversions Layout -->
       <div class="statsGrid">
         <div class="statCard">
           <div class="statLabel">Total Hours</div>
@@ -198,6 +232,9 @@
         <div class="statCard">
           <div class="statLabel">Total Seconds</div>
           <div class="statValue" id="secondsLine">—</div>
+
+          <div class="soon">See you soon ❤️</div>
+
         </div>
       </div>
     </div>
@@ -212,12 +249,22 @@
     const mNum = document.getElementById("mNum");
     const sNum = document.getElementById("sNum");
 
+    const dLbl = document.getElementById("dLbl");
+    const hLbl = document.getElementById("hLbl");
+    const mLbl = document.getElementById("mLbl");
+    const sLbl = document.getElementById("sLbl");
+
     const elHours = document.getElementById("hoursLine");
     const elMinutes = document.getElementById("minutesLine");
     const elSeconds = document.getElementById("secondsLine");
 
     const fmtInt = (n) => n.toLocaleString("en-US");
     const pad2 = (n) => String(n).padStart(2, "0");
+
+    // ✅ plural handling (1 Day vs 2 Days)
+    function pluralize(n, singular, plural){
+      return (n === 1) ? singular : plural;
+    }
 
     function tick(){
       const now = Date.now();
@@ -228,6 +275,12 @@
         hNum.textContent = "00";
         mNum.textContent = "00";
         sNum.textContent = "00";
+
+        dLbl.textContent = "Days";
+        hLbl.textContent = "Hours";
+        mLbl.textContent = "Minutes";
+        sLbl.textContent = "Seconds";
+
         elHours.textContent = "0";
         elMinutes.textContent = "0";
         elSeconds.textContent = "0";
@@ -245,6 +298,12 @@
       hNum.textContent = pad2(hours);
       mNum.textContent = pad2(minutes);
       sNum.textContent = pad2(seconds);
+
+      // ✅ update labels with correct singular/plural
+      dLbl.textContent = pluralize(days, "Day", "Days");
+      hLbl.textContent = pluralize(hours, "Hour", "Hours");
+      mLbl.textContent = pluralize(minutes, "Minute", "Minutes");
+      sLbl.textContent = pluralize(seconds, "Second", "Seconds");
 
       const totalHours = Math.floor(totalSeconds / 3600);
       const totalMinutes = Math.floor(totalSeconds / 60);

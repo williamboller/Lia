@@ -24,10 +24,6 @@
       /* dynamic accent (JS updates) */
       --accent2: rgba(122,162,255,.22);
       --accent3: rgba(122,162,255,.16);
-
-      /* heartbeat strength */
-      --beatScale: 1;
-      --beatGlow: rgba(122,162,255,.20);
     }
 
     *{ box-sizing:border-box; }
@@ -51,13 +47,13 @@
       overflow-x:hidden;
     }
 
-    /* ✅ 1️⃣1 Starfield canvas behind everything */
+    /* Starfield canvas behind everything */
     #stars{
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      opacity: .35; /* subtle */
+      opacity: .35;
     }
 
     .wrap{
@@ -94,45 +90,6 @@
       color: rgba(234,240,255,1);
     }
 
-    /* Header controls row (heartbeat toggle) */
-    .controlsRow{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      margin: 0 0 14px;
-      flex-wrap:wrap;
-    }
-
-    .toggle{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color: rgba(234,240,255,.92);
-      font-weight: 850;
-      cursor:pointer;
-      user-select:none;
-      transition: background .2s ease, border-color .2s ease, transform .12s ease;
-    }
-    .toggle:hover{ transform: translateY(-1px); }
-    .toggle.on{
-      background: rgba(255,105,180,.16);
-      border-color: rgba(255,105,180,.35);
-    }
-    .dot{
-      width:10px;height:10px;border-radius:999px;
-      background: rgba(234,240,255,.55);
-      box-shadow: 0 0 0 rgba(255,105,180,0);
-      transition: background .2s ease, box-shadow .2s ease;
-    }
-    .toggle.on .dot{
-      background: rgba(255,105,180,.9);
-      box-shadow: 0 0 18px rgba(255,105,180,.28);
-    }
-
     .card{
       background: var(--card);
       border: 1px solid var(--stroke);
@@ -140,7 +97,7 @@
       padding: 44px 22px 36px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
-      transition: border-color 500ms ease, box-shadow 500ms ease, transform 500ms ease;
+      transition: border-color 500ms ease, box-shadow 500ms ease;
     }
 
     h1{
@@ -150,16 +107,9 @@
       letter-spacing: -0.02em;
     }
 
-    .sub{
-      font-size: 22px;
-      color: var(--muted);
-      margin-bottom: 8px;
-      font-weight: 750;
-    }
-
-    /* ✅ 3️⃣ Dynamic rotating subtitle */
+    /* ✅ rotator ABOVE "In" */
     .rotator{
-      margin: 0 0 10px;
+      margin: 6px 0 10px;
       min-height: 20px;
       font-size: 15px;
       color: rgba(234,240,255,.92);
@@ -177,7 +127,13 @@
       transform: translateY(0);
     }
 
-    /* ✅ Milestone message */
+    .sub{
+      font-size: 22px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 750;
+    }
+
     .milestone{
       margin: 0 0 14px;
       font-size: 15px;
@@ -187,33 +143,16 @@
       min-height: 20px;
     }
 
-    /* Hint line */
-    .hint{
-      margin: 0 0 16px;
-      font-size: 13px;
-      color: rgba(183,192,221,.9);
-      letter-spacing: .02em;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-    }
-
     .countGrid{
       display:grid;
       grid-template-columns: repeat(4, 1fr);
       gap:12px;
-      margin: 12px auto 18px;
+      margin: 12px auto 10px;
       padding:14px;
       border-radius:18px;
       background: rgba(122,162,255,.07);
       border:1px solid rgba(122,162,255,.18);
-      transition: background 500ms ease, border-color 500ms ease, transform 180ms ease, box-shadow 180ms ease;
-      transform: scale(var(--beatScale));
-      box-shadow: 0 0 0 var(--beatGlow);
+      transition: background 500ms ease, border-color 500ms ease;
     }
 
     .unit{
@@ -283,22 +222,19 @@
       50%{ opacity:.42; }
     }
 
-    /* ✅ 5️⃣ Heartbeat Mode (extra pulse) */
-    .heartbeatOn .countGrid{
-      animation: beat 1.2s ease-in-out infinite;
-    }
-    .heartbeatOn .unit.seconds{
-      animation: beatSmall 1.2s ease-in-out infinite;
-    }
-    @keyframes beat{
-      0%,100%{ transform: scale(1); box-shadow: 0 0 0 rgba(255,105,180,0); }
-      45%{ transform: scale(1.01); box-shadow: 0 0 35px rgba(255,105,180,.14); }
-      60%{ transform: scale(1.006); box-shadow: 0 0 18px rgba(255,105,180,.10); }
-    }
-    @keyframes beatSmall{
-      0%,100%{ transform: translateY(0); }
-      45%{ transform: translateY(-2px); }
-      60%{ transform: translateY(-1px); }
+    /* ✅ hint moved UNDER countdown */
+    .hint{
+      margin: 10px 0 18px;
+      font-size: 13px;
+      color: rgba(183,192,221,.9);
+      letter-spacing: .02em;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
     }
 
     .sectionTitle{
@@ -331,10 +267,18 @@
       font-weight: 800;
     }
 
+    /* ✅ total values now animate too */
     .statValue{
       font-size:28px;
       font-weight:900;
       letter-spacing: -0.02em;
+      display:inline-block;
+      transition: transform 180ms ease, opacity 180ms ease;
+      will-change: transform, opacity;
+    }
+    .statValue.bump{
+      transform: translateY(-4px) scale(1.01);
+      opacity: .92;
     }
 
     .soon{
@@ -409,48 +353,39 @@
 </head>
 
 <body>
-  <!-- starfield canvas -->
   <canvas id="stars"></canvas>
 
   <div class="wrap">
-
     <div class="tabs" role="tablist" aria-label="Countdown tabs">
       <button class="tab active" id="tabCountdown" type="button">Until</button>
       <button class="tab" id="tabSince" type="button">Since</button>
-    </div>
-
-    <!-- ✅ Heartbeat toggle -->
-    <div class="controlsRow">
-      <button class="toggle" id="heartbeatToggle" type="button" aria-pressed="false">
-        <span class="dot"></span> Heartbeat Mode
-      </button>
     </div>
 
     <!-- PANEL: COUNTDOWN -->
     <div class="panel active" id="panelCountdown">
       <div class="card">
         <h1>Will Sees Lia</h1>
-        <div class="sub">In</div>
 
-        <!-- ✅ Rotating subtitle -->
+        <!-- ✅ rotator ABOVE "In" -->
         <div class="rotator" id="rotatorCountdown"></div>
 
-        <!-- ✅ Milestone line -->
+        <div class="sub">In</div>
+
         <div class="milestone" id="milestoneCountdown"></div>
 
-        <!-- ✅ Hint -->
-        <div class="hint">✨ Psst… click <b>SECONDS</b> for a secret</div>
-
-        <div class="countGrid" id="gridCountdown">
+        <div class="countGrid">
           <div class="unit"><div class="num" id="d">—</div><div class="lbl" id="dLbl">Days</div></div>
           <div class="unit"><div class="num" id="h">—</div><div class="lbl" id="hLbl">Hours</div></div>
           <div class="unit"><div class="num" id="m">—</div><div class="lbl" id="mLbl">Minutes</div></div>
 
-          <div class="unit seconds clickable" id="secondsBox" title="Click for a fun fact">
+          <div class="unit seconds clickable" id="secondsBox" title="Click for a secret">
             <div class="num" id="s">—</div>
             <div class="lbl" id="sLbl">Seconds</div>
           </div>
         </div>
+
+        <!-- ✅ hint moved under countdown -->
+        <div class="hint">✨ Psst… click <b>SECONDS</b> for a secret</div>
 
         <div class="sectionTitle">That’s</div>
 
@@ -473,16 +408,19 @@
       <div class="soon">See you soon ❤️</div>
     </div>
 
-    <!-- PANEL: COUNT UP -->
+    <!-- PANEL: SINCE -->
     <div class="panel" id="panelSince">
       <div class="card">
         <h1>We Saw Each Other</h1>
+
+        <!-- ✅ matching rotator ABOVE subtitle -->
+        <div class="rotator" id="rotatorSince"></div>
+
         <div class="sub">Since 12/19/2025 • 4:20 PM ET</div>
 
-        <div class="rotator" id="rotatorSince"></div>
         <div class="milestone" id="milestoneSince"></div>
 
-        <div class="countGrid" id="gridSince">
+        <div class="countGrid">
           <div class="unit"><div class="num" id="sd">—</div><div class="lbl" id="sdLbl">Days</div></div>
           <div class="unit"><div class="num" id="sh">—</div><div class="lbl" id="shLbl">Hours</div></div>
           <div class="unit"><div class="num" id="sm">—</div><div class="lbl" id="smLbl">Minutes</div></div>
@@ -509,7 +447,6 @@
 
       <div class="soon">One day closer ❤️</div>
     </div>
-
   </div>
 
   <!-- Modal -->
@@ -522,14 +459,12 @@
   </div>
 
   <script>
-    // === Time anchors ===
     // Countdown target: Jan 4, 2026 at 12:00 PM Eastern (EST=UTC-5) => 17:00 UTC
     const TARGET = Date.UTC(2026,0,4,17,0,0);
-
-    // Count-up start: Dec 19, 2025 at 4:20 PM Eastern (EST=UTC-5) => 21:20 UTC
+    // Since start: Dec 19, 2025 at 4:20 PM Eastern => 21:20 UTC
     const SINCE = Date.UTC(2025,11,19,21,20,0);
 
-    // === Elements (Countdown) ===
+    // Countdown elements
     const d=document.getElementById("d"),
           h=document.getElementById("h"),
           m=document.getElementById("m"),
@@ -545,8 +480,9 @@
 
     const milestoneCountdown = document.getElementById("milestoneCountdown");
     const rotatorCountdown = document.getElementById("rotatorCountdown");
+    const secondsBox = document.getElementById("secondsBox");
 
-    // === Elements (Since) ===
+    // Since elements
     const sd=document.getElementById("sd"),
           sh=document.getElementById("sh"),
           sm=document.getElementById("sm"),
@@ -563,7 +499,7 @@
     const milestoneSince = document.getElementById("milestoneSince");
     const rotatorSince = document.getElementById("rotatorSince");
 
-    // === Tabs ===
+    // Tabs
     const tabCountdown = document.getElementById("tabCountdown");
     const tabSince = document.getElementById("tabSince");
     const panelCountdown = document.getElementById("panelCountdown");
@@ -583,18 +519,25 @@
       panelCountdown.classList.remove("active");
     });
 
-    // === Heartbeat toggle ===
-    const heartbeatToggle = document.getElementById("heartbeatToggle");
-    let heartbeatOn = false;
+    // Modal
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalClose = document.getElementById("modalClose");
+    const modalText = document.getElementById("modalText");
 
-    heartbeatToggle.addEventListener("click", () => {
-      heartbeatOn = !heartbeatOn;
-      document.body.classList.toggle("heartbeatOn", heartbeatOn);
-      heartbeatToggle.classList.toggle("on", heartbeatOn);
-      heartbeatToggle.setAttribute("aria-pressed", heartbeatOn ? "true" : "false");
-    });
+    function openModal(text){
+      modalText.textContent = text;
+      modalOverlay.classList.add("show");
+      modalOverlay.setAttribute("aria-hidden","false");
+    }
+    function closeModal(){
+      modalOverlay.classList.remove("show");
+      modalOverlay.setAttribute("aria-hidden","true");
+    }
+    modalClose.addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
-    // === Helpers ===
+    // Helpers
     const pad=n=>String(n).padStart(2,"0");
     const fmt=n=>n.toLocaleString("en-US");
 
@@ -602,18 +545,28 @@
       return (n===1) ? one : many;
     }
 
-    // Animate number changes
+    function bump(el, cls="bump"){
+      el.classList.remove(cls);
+      void el.offsetWidth;
+      el.classList.add(cls);
+      setTimeout(() => el.classList.remove(cls), 190);
+    }
+
     function setNumber(el, newText){
       if (el.textContent !== newText){
-        el.classList.remove("bump");
-        void el.offsetWidth;
         el.textContent = newText;
-        el.classList.add("bump");
-        setTimeout(() => el.classList.remove("bump"), 190);
+        bump(el, "bump");
       }
     }
 
-    // ✅ 2 + 5 Theme: time-of-day + urgency color shifts
+    function setStat(el, newText){
+      if (el.textContent !== newText){
+        el.textContent = newText;
+        bump(el, "bump"); // same class used for statValue too
+      }
+    }
+
+    // Theme: time-of-day + urgency shifts
     function applyTheme(secondsRemaining){
       const hour = new Date().getHours();
       let bg1 = "#0b1020", bg2 = "#111a33";
@@ -627,11 +580,11 @@
       let a3 = "rgba(122,162,255,.16)";
       let borderHot = "rgba(122,162,255,.18)";
 
-      if (secondsRemaining <= 3600 * 24){         // < 24 hours
+      if (secondsRemaining <= 3600 * 24){
         a2 = "rgba(255,105,180,.22)";
         a3 = "rgba(255,165,0,.14)";
         borderHot = "rgba(255,105,180,.22)";
-      } else if (secondsRemaining <= 3600 * 24 * 7){ // < 7 days
+      } else if (secondsRemaining <= 3600 * 24 * 7){
         a2 = "rgba(122,255,197,.18)";
         a3 = "rgba(122,162,255,.14)";
         borderHot = "rgba(122,255,197,.20)";
@@ -642,11 +595,10 @@
       document.documentElement.style.setProperty("--accent2", a2);
       document.documentElement.style.setProperty("--accent3", a3);
 
-      // nudge borders
       document.querySelectorAll(".countGrid").forEach(g => g.style.borderColor = borderHot);
     }
 
-    // ✅ 4) Custom milestone messages (richer)
+    // Milestone messages
     function milestoneText(secondsRemaining){
       if (secondsRemaining <= 0) return "It’s time. ❤️";
       if (secondsRemaining <= 10) return "Ten seconds.";
@@ -673,7 +625,7 @@
       return "Time keeps moving…";
     }
 
-    // ✅ 3) Dynamic subtitle rotation (two different sets)
+    // Rotators
     const rotateCountdownLines = [
       "Every second closer.",
       "Worth the wait ❤️",
@@ -688,8 +640,8 @@
       "Time since that moment.",
       "Still thinking about it.",
       "Feels longer than it is.",
-      "Time moves… but not fast enough.",
       "Counting up until the next one.",
+      "Time moves… but not fast enough.",
     ];
 
     function startRotator(el, lines){
@@ -708,35 +660,16 @@
       }, 7000);
     }
 
-    // ✅ 7) More fun facts on seconds click
-    const secondsBox = document.getElementById("secondsBox");
-    const modalOverlay = document.getElementById("modalOverlay");
-    const modalClose = document.getElementById("modalClose");
-    const modalText = document.getElementById("modalText");
-
-    function openModal(text){
-      modalText.textContent = text;
-      modalOverlay.classList.add("show");
-      modalOverlay.setAttribute("aria-hidden","false");
-    }
-    function closeModal(){
-      modalOverlay.classList.remove("show");
-      modalOverlay.setAttribute("aria-hidden","true");
-    }
-    modalClose.addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
-
+    // Fun facts
     function randomFact(secondsRemaining){
       const totalMinutes = Math.floor(secondsRemaining / 60);
       const totalHours = Math.floor(secondsRemaining / 3600);
       const totalDays = Math.floor(secondsRemaining / 86400);
 
-      // fun estimates (safe + simple)
       const songs3min = Math.floor(totalMinutes / 3);
       const eps22min = Math.floor(totalMinutes / 22);
-      const heartbeats = Math.floor(secondsRemaining * 1.2); // ~72 bpm avg (approx)
-      const breaths = Math.floor(secondsRemaining / 4);      // ~15 breaths/min (approx)
+      const heartbeats = Math.floor(secondsRemaining * 1.2);
+      const breaths = Math.floor(secondsRemaining / 4);
       const sunsets = totalDays + (secondsRemaining > 0 ? 1 : 0);
 
       const facts = [
@@ -751,7 +684,6 @@
         `You’re ${fmt(totalDays)} day(s) out — and getting closer.`,
         `Secret: if you’re reading this, you found the button 😌`,
       ];
-
       return facts[Math.floor(Math.random() * facts.length)];
     }
 
@@ -760,7 +692,7 @@
       openModal(randomFact(rem));
     });
 
-    // === Ticks ===
+    // Ticks
     function tickCountdown(){
       let diff = TARGET - Date.now();
       if(diff < 0) diff = 0;
@@ -783,12 +715,12 @@
       mLbl.textContent = plural(mins, "Minute", "Minutes");
       sLbl.textContent = plural(secs, "Second", "Seconds");
 
-      th.textContent = fmt(Math.floor(sec/3600));
-      tm.textContent = fmt(Math.floor(sec/60));
-      ts.textContent = fmt(sec);
+      // ✅ animate totals too
+      setStat(th, fmt(Math.floor(sec/3600)));
+      setStat(tm, fmt(Math.floor(sec/60)));
+      setStat(ts, fmt(sec));
 
       milestoneCountdown.textContent = milestoneText(sec);
-
       applyTheme(sec);
 
       // seconds border shifts with urgency
@@ -822,9 +754,10 @@
       smLbl.textContent = plural(mins, "Minute", "Minutes");
       ssLbl.textContent = plural(secs, "Second", "Seconds");
 
-      sth.textContent = fmt(Math.floor(sec/3600));
-      stm.textContent = fmt(Math.floor(sec/60));
-      sts.textContent = fmt(sec);
+      // ✅ animate since totals too
+      setStat(sth, fmt(Math.floor(sec/3600)));
+      setStat(stm, fmt(Math.floor(sec/60)));
+      setStat(sts, fmt(sec));
 
       milestoneSince.textContent = milestoneTextSince(sec);
     }
@@ -834,7 +767,7 @@
       tickSince();
     }
 
-    // ✅ 1️⃣1 Starfield / particles (subtle)
+    // Starfield
     function startStars(){
       const canvas = document.getElementById("stars");
       const ctx = canvas.getContext("2d");
@@ -848,14 +781,13 @@
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerHeight + "px";
 
-        // generate stars proportional to screen area
         const count = Math.floor((window.innerWidth * window.innerHeight) / 18000);
         stars = Array.from({length: Math.max(60, Math.min(160, count))}, () => ({
           x: Math.random() * w,
           y: Math.random() * h,
           r: (Math.random() * 1.4 + 0.4) * dpr,
           a: Math.random() * 0.55 + 0.15,
-          vy: (Math.random() * 0.06 + 0.02) * dpr,  // slow drift
+          vy: (Math.random() * 0.06 + 0.02) * dpr,
           tw: Math.random() * 0.8 + 0.2,
           t: Math.random() * Math.PI * 2,
         }));
@@ -863,8 +795,6 @@
 
       function draw(){
         ctx.clearRect(0,0,w,h);
-
-        // very subtle (no fixed color styles; keep neutral white)
         for (const s of stars){
           s.t += 0.008 * s.tw;
           const alpha = s.a + Math.sin(s.t) * 0.10;
@@ -877,7 +807,6 @@
           s.y += s.vy;
           if (s.y > h + 10) { s.y = -10; s.x = Math.random() * w; }
         }
-
         requestAnimationFrame(draw);
       }
 
@@ -886,10 +815,9 @@
       draw();
     }
 
-    // start everything
+    // Start
     startRotator(rotatorCountdown, rotateCountdownLines);
     startRotator(rotatorSince, rotateSinceLines);
-
     startStars();
 
     tickAll();

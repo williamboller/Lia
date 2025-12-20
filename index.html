@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Countdown to Lia</title>
 
-  <!-- ✅ 4) Favicon ❤️ (inline SVG, no extra files needed) -->
+  <!-- Favicon ❤️ -->
   <link rel="icon" type="image/svg+xml"
         href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">❤️</text></svg>'>
 
@@ -13,16 +13,21 @@
     :root{
       --bg1:#0b1020;
       --bg2:#111a33;
+
       --text:#eaf0ff;
       --muted:#b7c0dd;
-      --accent:#7aa2ff;
+
       --shadow: 0 20px 60px rgba(0,0,0,.35);
       --stroke: rgba(255,255,255,.10);
       --card: rgba(15, 23, 42, .78);
 
-      /* dynamic theme vars (JS updates these) */
+      /* dynamic accent (JS updates) */
       --accent2: rgba(122,162,255,.22);
       --accent3: rgba(122,162,255,.16);
+
+      /* heartbeat strength */
+      --beatScale: 1;
+      --beatGlow: rgba(122,162,255,.20);
     }
 
     *{ box-sizing:border-box; }
@@ -37,21 +42,32 @@
       color:var(--text);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 
-      /* ✅ 5) Background changes by time-of-day + urgency (CSS vars driven) */
       background:
         radial-gradient(900px 500px at 15% 20%, var(--accent2), transparent 60%),
         radial-gradient(900px 500px at 85% 80%, var(--accent3), transparent 60%),
         linear-gradient(180deg, var(--bg1), var(--bg2));
 
       transition: background 600ms ease, color 400ms ease;
+      overflow-x:hidden;
+    }
+
+    /* ✅ 1️⃣1 Starfield canvas behind everything */
+    #stars{
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .35; /* subtle */
     }
 
     .wrap{
       width:min(980px, 100%);
       text-align:center;
+      position: relative;
+      z-index: 1;
     }
 
-    /* Top tabs */
+    /* Tabs */
     .tabs{
       display:flex;
       gap:10px;
@@ -78,6 +94,45 @@
       color: rgba(234,240,255,1);
     }
 
+    /* Header controls row (heartbeat toggle) */
+    .controlsRow{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      margin: 0 0 14px;
+      flex-wrap:wrap;
+    }
+
+    .toggle{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(234,240,255,.92);
+      font-weight: 850;
+      cursor:pointer;
+      user-select:none;
+      transition: background .2s ease, border-color .2s ease, transform .12s ease;
+    }
+    .toggle:hover{ transform: translateY(-1px); }
+    .toggle.on{
+      background: rgba(255,105,180,.16);
+      border-color: rgba(255,105,180,.35);
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: rgba(234,240,255,.55);
+      box-shadow: 0 0 0 rgba(255,105,180,0);
+      transition: background .2s ease, box-shadow .2s ease;
+    }
+    .toggle.on .dot{
+      background: rgba(255,105,180,.9);
+      box-shadow: 0 0 18px rgba(255,105,180,.28);
+    }
+
     .card{
       background: var(--card);
       border: 1px solid var(--stroke);
@@ -85,7 +140,7 @@
       padding: 44px 22px 36px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
-      transition: border-color 500ms ease, box-shadow 500ms ease;
+      transition: border-color 500ms ease, box-shadow 500ms ease, transform 500ms ease;
     }
 
     h1{
@@ -98,18 +153,53 @@
     .sub{
       font-size: 22px;
       color: var(--muted);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-weight: 750;
     }
 
-    /* ✅ 3) Milestone message */
+    /* ✅ 3️⃣ Dynamic rotating subtitle */
+    .rotator{
+      margin: 0 0 10px;
+      min-height: 20px;
+      font-size: 15px;
+      color: rgba(234,240,255,.92);
+      opacity: .92;
+      font-weight: 700;
+      transition: opacity 240ms ease, transform 240ms ease;
+      transform: translateY(0);
+    }
+    .rotator.fadeOut{
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    .rotator.fadeIn{
+      opacity: .92;
+      transform: translateY(0);
+    }
+
+    /* ✅ Milestone message */
     .milestone{
       margin: 0 0 14px;
-      font-size: 16px;
-      color: rgba(234,240,255,.92);
+      font-size: 15px;
+      color: rgba(234,240,255,.9);
       opacity: .95;
       font-weight: 750;
-      min-height: 22px;
+      min-height: 20px;
+    }
+
+    /* Hint line */
+    .hint{
+      margin: 0 0 16px;
+      font-size: 13px;
+      color: rgba(183,192,221,.9);
+      letter-spacing: .02em;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
     }
 
     .countGrid{
@@ -121,7 +211,9 @@
       border-radius:18px;
       background: rgba(122,162,255,.07);
       border:1px solid rgba(122,162,255,.18);
-      transition: background 500ms ease, border-color 500ms ease;
+      transition: background 500ms ease, border-color 500ms ease, transform 180ms ease, box-shadow 180ms ease;
+      transform: scale(var(--beatScale));
+      box-shadow: 0 0 0 var(--beatGlow);
     }
 
     .unit{
@@ -131,14 +223,12 @@
       border:1px solid rgba(255,255,255,.09);
       position: relative;
       overflow: hidden;
-      transition: transform 180ms ease, border-color 500ms ease, box-shadow 500ms ease;
+      transition: transform 180ms ease, border-color 500ms ease, box-shadow 500ms ease, background 500ms ease;
     }
 
     .num{
       font-size: 38px;
       font-weight:900;
-
-      /* ✅ 1) Animate number changes */
       display:inline-block;
       transition: transform 180ms ease, opacity 180ms ease;
       will-change: transform, opacity;
@@ -157,11 +247,10 @@
       font-weight: 800;
     }
 
-    /* ✅ 8) Clickable seconds box */
     .unit.clickable{ cursor:pointer; }
     .unit.clickable:hover{ transform: translateY(-2px); }
 
-    /* ✅ subtle animated glow on seconds box (also changes with urgency) */
+    /* seconds glow */
     .unit.seconds{
       border-color: rgba(122,162,255,.30);
       box-shadow: 0 0 0 rgba(122,162,255,0);
@@ -171,7 +260,7 @@
       position:absolute;
       inset:-40%;
       background: radial-gradient(circle at 50% 50%, rgba(122,162,255,.35), transparent 55%);
-      opacity:.22;
+      opacity:.20;
       animation: glowPulse 1.6s ease-in-out infinite;
       pointer-events:none;
     }
@@ -192,6 +281,24 @@
     @keyframes glowRing{
       0%,100%{ opacity:.22; }
       50%{ opacity:.42; }
+    }
+
+    /* ✅ 5️⃣ Heartbeat Mode (extra pulse) */
+    .heartbeatOn .countGrid{
+      animation: beat 1.2s ease-in-out infinite;
+    }
+    .heartbeatOn .unit.seconds{
+      animation: beatSmall 1.2s ease-in-out infinite;
+    }
+    @keyframes beat{
+      0%,100%{ transform: scale(1); box-shadow: 0 0 0 rgba(255,105,180,0); }
+      45%{ transform: scale(1.01); box-shadow: 0 0 35px rgba(255,105,180,.14); }
+      60%{ transform: scale(1.006); box-shadow: 0 0 18px rgba(255,105,180,.10); }
+    }
+    @keyframes beatSmall{
+      0%,100%{ transform: translateY(0); }
+      45%{ transform: translateY(-2px); }
+      60%{ transform: translateY(-1px); }
     }
 
     .sectionTitle{
@@ -230,7 +337,6 @@
       letter-spacing: -0.02em;
     }
 
-    /* Under-box message */
     .soon{
       margin-top: 18px;
       font-size:16px;
@@ -238,11 +344,10 @@
       font-weight: 800;
     }
 
-    /* Panels (multiple countdowns) */
     .panel{ display:none; }
     .panel.active{ display:block; }
 
-    /* ✅ Modal for fun facts */
+    /* Modal */
     .modalOverlay{
       position: fixed;
       inset: 0;
@@ -257,7 +362,7 @@
     .modalOverlay.show{ display:flex; }
 
     .modal{
-      width: min(520px, 100%);
+      width: min(540px, 100%);
       border-radius: 20px;
       background: rgba(15, 23, 42, .92);
       border: 1px solid rgba(255,255,255,.12);
@@ -275,6 +380,7 @@
       margin: 0 0 12px;
       color: rgba(234,240,255,.92);
       line-height: 1.35;
+      font-size: 15px;
     }
     .modal .x{
       position:absolute;
@@ -303,12 +409,21 @@
 </head>
 
 <body>
+  <!-- starfield canvas -->
+  <canvas id="stars"></canvas>
+
   <div class="wrap">
 
-    <!-- ✅ 1️⃣1) Multiple countdowns via tabs -->
     <div class="tabs" role="tablist" aria-label="Countdown tabs">
       <button class="tab active" id="tabCountdown" type="button">Until</button>
       <button class="tab" id="tabSince" type="button">Since</button>
+    </div>
+
+    <!-- ✅ Heartbeat toggle -->
+    <div class="controlsRow">
+      <button class="toggle" id="heartbeatToggle" type="button" aria-pressed="false">
+        <span class="dot"></span> Heartbeat Mode
+      </button>
     </div>
 
     <!-- PANEL: COUNTDOWN -->
@@ -317,14 +432,20 @@
         <h1>Will Sees Lia</h1>
         <div class="sub">In</div>
 
+        <!-- ✅ Rotating subtitle -->
+        <div class="rotator" id="rotatorCountdown"></div>
+
+        <!-- ✅ Milestone line -->
         <div class="milestone" id="milestoneCountdown"></div>
 
-        <div class="countGrid">
+        <!-- ✅ Hint -->
+        <div class="hint">✨ Psst… click <b>SECONDS</b> for a secret</div>
+
+        <div class="countGrid" id="gridCountdown">
           <div class="unit"><div class="num" id="d">—</div><div class="lbl" id="dLbl">Days</div></div>
           <div class="unit"><div class="num" id="h">—</div><div class="lbl" id="hLbl">Hours</div></div>
           <div class="unit"><div class="num" id="m">—</div><div class="lbl" id="mLbl">Minutes</div></div>
 
-          <!-- ✅ seconds is clickable + glow -->
           <div class="unit seconds clickable" id="secondsBox" title="Click for a fun fact">
             <div class="num" id="s">—</div>
             <div class="lbl" id="sLbl">Seconds</div>
@@ -352,15 +473,16 @@
       <div class="soon">See you soon ❤️</div>
     </div>
 
-    <!-- PANEL: COUNT UP (since last time) -->
+    <!-- PANEL: COUNT UP -->
     <div class="panel" id="panelSince">
       <div class="card">
         <h1>We Saw Each Other</h1>
         <div class="sub">Since 12/19/2025 • 4:20 PM ET</div>
 
+        <div class="rotator" id="rotatorSince"></div>
         <div class="milestone" id="milestoneSince"></div>
 
-        <div class="countGrid">
+        <div class="countGrid" id="gridSince">
           <div class="unit"><div class="num" id="sd">—</div><div class="lbl" id="sdLbl">Days</div></div>
           <div class="unit"><div class="num" id="sh">—</div><div class="lbl" id="shLbl">Hours</div></div>
           <div class="unit"><div class="num" id="sm">—</div><div class="lbl" id="smLbl">Minutes</div></div>
@@ -390,11 +512,11 @@
 
   </div>
 
-  <!-- ✅ Modal -->
+  <!-- Modal -->
   <div class="modalOverlay" id="modalOverlay" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <button class="x" id="modalClose" aria-label="Close">✕</button>
-      <h3 id="modalTitle">Fun Fact</h3>
+      <h3 id="modalTitle">Secret</h3>
       <p id="modalText">Loading…</p>
     </div>
   </div>
@@ -422,6 +544,7 @@
           sLbl=document.getElementById("sLbl");
 
     const milestoneCountdown = document.getElementById("milestoneCountdown");
+    const rotatorCountdown = document.getElementById("rotatorCountdown");
 
     // === Elements (Since) ===
     const sd=document.getElementById("sd"),
@@ -438,6 +561,7 @@
           ssLbl=document.getElementById("ssLbl");
 
     const milestoneSince = document.getElementById("milestoneSince");
+    const rotatorSince = document.getElementById("rotatorSince");
 
     // === Tabs ===
     const tabCountdown = document.getElementById("tabCountdown");
@@ -459,6 +583,17 @@
       panelCountdown.classList.remove("active");
     });
 
+    // === Heartbeat toggle ===
+    const heartbeatToggle = document.getElementById("heartbeatToggle");
+    let heartbeatOn = false;
+
+    heartbeatToggle.addEventListener("click", () => {
+      heartbeatOn = !heartbeatOn;
+      document.body.classList.toggle("heartbeatOn", heartbeatOn);
+      heartbeatToggle.classList.toggle("on", heartbeatOn);
+      heartbeatToggle.setAttribute("aria-pressed", heartbeatOn ? "true" : "false");
+    });
+
     // === Helpers ===
     const pad=n=>String(n).padStart(2,"0");
     const fmt=n=>n.toLocaleString("en-US");
@@ -467,11 +602,10 @@
       return (n===1) ? one : many;
     }
 
-    // ✅ 1) Animate numbers when they change
+    // Animate number changes
     function setNumber(el, newText){
       if (el.textContent !== newText){
         el.classList.remove("bump");
-        // force reflow so animation retriggers
         void el.offsetWidth;
         el.textContent = newText;
         el.classList.add("bump");
@@ -479,33 +613,26 @@
       }
     }
 
-    // ✅ 2 + 5) Dynamic theme: time-of-day + urgency color shifts
+    // ✅ 2 + 5 Theme: time-of-day + urgency color shifts
     function applyTheme(secondsRemaining){
-      const hour = new Date().getHours(); // viewer local time (nice effect)
+      const hour = new Date().getHours();
       let bg1 = "#0b1020", bg2 = "#111a33";
 
-      // time-of-day base
-      if (hour >= 6 && hour < 12){        // morning
-        bg1 = "#0a1330"; bg2 = "#121f45";
-      } else if (hour >= 12 && hour < 18){// afternoon
-        bg1 = "#08102a"; bg2 = "#0f1a3a";
-      } else if (hour >= 18 && hour < 22){// evening
-        bg1 = "#090f24"; bg2 = "#0d1635";
-      } else {                             // late night
-        bg1 = "#060a18"; bg2 = "#0a1128";
-      }
+      if (hour >= 6 && hour < 12){        bg1 = "#0a1330"; bg2 = "#121f45"; }
+      else if (hour >= 12 && hour < 18){  bg1 = "#08102a"; bg2 = "#0f1a3a"; }
+      else if (hour >= 18 && hour < 22){  bg1 = "#090f24"; bg2 = "#0d1635"; }
+      else {                               bg1 = "#060a18"; bg2 = "#0a1128"; }
 
-      // urgency accent
       let a2 = "rgba(122,162,255,.22)";
       let a3 = "rgba(122,162,255,.16)";
       let borderHot = "rgba(122,162,255,.18)";
 
-      if (secondsRemaining <= 3600 * 24){ // < 24 hours
-        a2 = "rgba(255,105,180,.22)";     // pink
-        a3 = "rgba(255,165,0,.14)";       // warm
+      if (secondsRemaining <= 3600 * 24){         // < 24 hours
+        a2 = "rgba(255,105,180,.22)";
+        a3 = "rgba(255,165,0,.14)";
         borderHot = "rgba(255,105,180,.22)";
       } else if (secondsRemaining <= 3600 * 24 * 7){ // < 7 days
-        a2 = "rgba(122,255,197,.18)";     // teal
+        a2 = "rgba(122,255,197,.18)";
         a3 = "rgba(122,162,255,.14)";
         borderHot = "rgba(122,255,197,.20)";
       }
@@ -515,31 +642,73 @@
       document.documentElement.style.setProperty("--accent2", a2);
       document.documentElement.style.setProperty("--accent3", a3);
 
-      // also nudge the countdown grid border a bit
-      const grids = document.querySelectorAll(".countGrid");
-      grids.forEach(g => g.style.borderColor = borderHot);
+      // nudge borders
+      document.querySelectorAll(".countGrid").forEach(g => g.style.borderColor = borderHot);
     }
 
-    // ✅ 3) Milestone messages
+    // ✅ 4) Custom milestone messages (richer)
     function milestoneText(secondsRemaining){
       if (secondsRemaining <= 0) return "It’s time. ❤️";
-      if (secondsRemaining <= 60) return "One minute. Breathe.";
+      if (secondsRemaining <= 10) return "Ten seconds.";
+      if (secondsRemaining <= 60) return "Less than a minute.";
+      if (secondsRemaining <= 60 * 5) return "Five minutes or less.";
+      if (secondsRemaining <= 60 * 30) return "Under 30 minutes.";
       if (secondsRemaining <= 3600) return "Less than an hour.";
-      if (secondsRemaining <= 3600*24) return "Tomorrow.";
-      if (secondsRemaining <= 3600*24*2) return "Two days.";
-      if (secondsRemaining <= 3600*24*7) return "One week.";
+      if (secondsRemaining <= 3600 * 6) return "Today.";
+      if (secondsRemaining <= 3600 * 24) return "Tomorrow.";
+      if (secondsRemaining <= 3600 * 24 * 2) return "Two days.";
+      if (secondsRemaining <= 3600 * 24 * 3) return "Three days.";
+      if (secondsRemaining <= 3600 * 24 * 7) return "One week.";
       return "Counting down…";
     }
 
     function milestoneTextSince(totalSeconds){
-      if (totalSeconds < 60) return "Just now.";
+      if (totalSeconds < 30) return "Just now.";
+      if (totalSeconds < 60) return "Less than a minute.";
+      if (totalSeconds < 60 * 10) return "A few minutes ago.";
       if (totalSeconds < 3600) return "Less than an hour ago.";
-      if (totalSeconds < 3600*24) return "Earlier today.";
-      if (totalSeconds < 3600*24*2) return "Yesterday.";
+      if (totalSeconds < 3600 * 6) return "Earlier today.";
+      if (totalSeconds < 3600 * 24) return "Today.";
+      if (totalSeconds < 3600 * 48) return "Yesterday.";
       return "Time keeps moving…";
     }
 
-    // ✅ 8) Modal fun facts on seconds click
+    // ✅ 3) Dynamic subtitle rotation (two different sets)
+    const rotateCountdownLines = [
+      "Every second closer.",
+      "Worth the wait ❤️",
+      "Don’t blink.",
+      "Quietly counting down…",
+      "Almost there (soon).",
+      "This is the part where time crawls 😭",
+      "Okay… okay… okay…",
+    ];
+
+    const rotateSinceLines = [
+      "Time since that moment.",
+      "Still thinking about it.",
+      "Feels longer than it is.",
+      "Time moves… but not fast enough.",
+      "Counting up until the next one.",
+    ];
+
+    function startRotator(el, lines){
+      let idx = Math.floor(Math.random() * lines.length);
+      el.textContent = lines[idx];
+
+      setInterval(() => {
+        el.classList.add("fadeOut");
+        setTimeout(() => {
+          idx = (idx + 1) % lines.length;
+          el.textContent = lines[idx];
+          el.classList.remove("fadeOut");
+          el.classList.add("fadeIn");
+          setTimeout(() => el.classList.remove("fadeIn"), 260);
+        }, 260);
+      }, 7000);
+    }
+
+    // ✅ 7) More fun facts on seconds click
     const secondsBox = document.getElementById("secondsBox");
     const modalOverlay = document.getElementById("modalOverlay");
     const modalClose = document.getElementById("modalClose");
@@ -555,36 +724,43 @@
       modalOverlay.setAttribute("aria-hidden","true");
     }
     modalClose.addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", (e) => {
-      if (e.target === modalOverlay) closeModal();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeModal();
-    });
+    modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
     function randomFact(secondsRemaining){
       const totalMinutes = Math.floor(secondsRemaining / 60);
       const totalHours = Math.floor(secondsRemaining / 3600);
-      const days = Math.floor(secondsRemaining / 86400);
+      const totalDays = Math.floor(secondsRemaining / 86400);
+
+      // fun estimates (safe + simple)
+      const songs3min = Math.floor(totalMinutes / 3);
+      const eps22min = Math.floor(totalMinutes / 22);
+      const heartbeats = Math.floor(secondsRemaining * 1.2); // ~72 bpm avg (approx)
+      const breaths = Math.floor(secondsRemaining / 4);      // ~15 breaths/min (approx)
+      const sunsets = totalDays + (secondsRemaining > 0 ? 1 : 0);
 
       const facts = [
-        `That’s about ${fmt(totalMinutes)} minutes left — basically ${fmt(Math.floor(totalMinutes/60))} hours and change.`,
-        `If you listened to 3-minute songs nonstop, that’s roughly ${fmt(Math.floor(totalMinutes/3))} songs.`,
-        `That’s about ${fmt(Math.floor(secondsRemaining / 86400))} day(s) and ${pad(Math.floor((secondsRemaining % 86400) / 3600))} hour(s) left.`,
-        `You’re inside the final ${fmt(totalHours)} hour(s). Keep going.`,
-        `Fun math: ${fmt(secondsRemaining)} seconds = ${fmt(totalMinutes)} minutes = ${fmt(totalHours)} hours.`,
-        `Closer by the second. ❤️ (${fmt(days)} day(s) left)`
+        `That’s ${fmt(totalMinutes)} minutes left.`,
+        `That’s ${fmt(totalHours)} hours left.`,
+        `Roughly ${fmt(songs3min)} three-minute songs.`,
+        `About ${fmt(eps22min)} episodes of a 22-minute show.`,
+        `Approx. ${fmt(heartbeats)} heartbeats until then. ❤️`,
+        `Approx. ${fmt(breaths)} breaths until then.`,
+        `That’s about ${fmt(sunsets)} sunsets away.`,
+        `Math check: ${fmt(secondsRemaining)} seconds = ${fmt(totalMinutes)} minutes = ${fmt(totalHours)} hours.`,
+        `You’re ${fmt(totalDays)} day(s) out — and getting closer.`,
+        `Secret: if you’re reading this, you found the button 😌`,
       ];
+
       return facts[Math.floor(Math.random() * facts.length)];
     }
 
     secondsBox.addEventListener("click", () => {
-      // uses latest computed value from window._lastRemainingSeconds
       const rem = window._lastRemainingSeconds ?? 0;
       openModal(randomFact(rem));
     });
 
-    // === Main ticks ===
+    // === Ticks ===
     function tickCountdown(){
       let diff = TARGET - Date.now();
       if(diff < 0) diff = 0;
@@ -613,17 +789,15 @@
 
       milestoneCountdown.textContent = milestoneText(sec);
 
-      // theme + urgency
       applyTheme(sec);
 
-      // also adjust seconds glow intensity near the end
-      const secondsUnit = document.getElementById("secondsBox");
+      // seconds border shifts with urgency
       if (sec <= 3600*24){
-        secondsUnit.style.borderColor = "rgba(255,105,180,.40)";
+        secondsBox.style.borderColor = "rgba(255,105,180,.40)";
       } else if (sec <= 3600*24*7){
-        secondsUnit.style.borderColor = "rgba(122,255,197,.35)";
+        secondsBox.style.borderColor = "rgba(122,255,197,.35)";
       } else {
-        secondsUnit.style.borderColor = "rgba(122,162,255,.30)";
+        secondsBox.style.borderColor = "rgba(122,162,255,.30)";
       }
     }
 
@@ -659,6 +833,64 @@
       tickCountdown();
       tickSince();
     }
+
+    // ✅ 1️⃣1 Starfield / particles (subtle)
+    function startStars(){
+      const canvas = document.getElementById("stars");
+      const ctx = canvas.getContext("2d");
+      let w, h, dpr;
+      let stars = [];
+
+      function resize(){
+        dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        w = canvas.width = Math.floor(window.innerWidth * dpr);
+        h = canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+
+        // generate stars proportional to screen area
+        const count = Math.floor((window.innerWidth * window.innerHeight) / 18000);
+        stars = Array.from({length: Math.max(60, Math.min(160, count))}, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: (Math.random() * 1.4 + 0.4) * dpr,
+          a: Math.random() * 0.55 + 0.15,
+          vy: (Math.random() * 0.06 + 0.02) * dpr,  // slow drift
+          tw: Math.random() * 0.8 + 0.2,
+          t: Math.random() * Math.PI * 2,
+        }));
+      }
+
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+
+        // very subtle (no fixed color styles; keep neutral white)
+        for (const s of stars){
+          s.t += 0.008 * s.tw;
+          const alpha = s.a + Math.sin(s.t) * 0.10;
+
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(234,240,255,${Math.max(0, Math.min(0.8, alpha))})`;
+          ctx.fill();
+
+          s.y += s.vy;
+          if (s.y > h + 10) { s.y = -10; s.x = Math.random() * w; }
+        }
+
+        requestAnimationFrame(draw);
+      }
+
+      resize();
+      window.addEventListener("resize", resize);
+      draw();
+    }
+
+    // start everything
+    startRotator(rotatorCountdown, rotateCountdownLines);
+    startRotator(rotatorSince, rotateSinceLines);
+
+    startStars();
 
     tickAll();
     setInterval(tickAll, 1000);

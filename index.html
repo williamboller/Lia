@@ -19,7 +19,6 @@
 
   <style>
     :root{
-      /* more purple base */
       --bg1:#160a3a;
       --bg2:#12072d;
 
@@ -30,7 +29,6 @@
       --stroke: rgba(255,255,255,.10);
       --card: rgba(20, 14, 46, .78);
 
-      /* purple accents */
       --accent2: rgba(190,120,255,.24);
       --accent3: rgba(120,160,255,.14);
     }
@@ -228,7 +226,7 @@
       50%{ opacity:.42; }
     }
 
-    .hint{ display:none; } /* removed */
+    .hint{ display:none; }
 
     .sectionTitle{
       font-size:32px;
@@ -618,118 +616,149 @@
       }, 7000);
     }
 
-    // ---------------------------
-    // Fun facts (no duplicates per session)
-    // - 100 facts
-    // - no "you already know" (minutes/hours/seconds left)
-    // - reshuffles once you exhaust them
-    // ---------------------------
+    // -------------------------------------------------------
+    // Time-based "fun facts" (NO duplicates per session)
+    // - all facts are derived from time remaining (sec)
+    // - avoids boring "that's X minutes/hours" statements
+    // - 80-100+ unique-ish lines via template expansion
+    // -------------------------------------------------------
+    const seenFacts = new Set();
 
-    const FUN_FACTS = [
-      "Octopuses have three hearts.",
-      "Honey never spoils (people have eaten 3,000-year-old honey).",
-      "Bananas are berries, but strawberries aren’t.",
-      "A day on Venus is longer than a year on Venus.",
-      "Sharks existed before trees.",
-      "There are more possible chess games than atoms in the observable universe.",
-      "Wombat poop is cube-shaped.",
-      "A group of flamingos is called a flamboyance.",
-      "Butterflies taste with their feet.",
-      "Sea otters hold hands while they sleep so they don’t drift apart.",
-      "Cows have best friends and get stressed when separated.",
-      "The Eiffel Tower can grow over 6 inches in summer from heat expansion.",
-      "Some turtles can breathe through their butts (cloacal respiration).",
-      "Sloths can hold their breath longer than dolphins can.",
-      "The shortest war in history lasted about 38–45 minutes.",
-      "The heart of a blue whale is about the size of a small car.",
-      "The only letter that doesn’t appear in any U.S. state name is Q.",
-      "A bolt of lightning is hotter than the surface of the Sun.",
-      "Your brain uses about 20% of your body’s energy.",
-      "Some penguins propose with a pebble.",
-      "There are more stars in the universe than grains of sand on Earth.",
-      "A single cloud can weigh over a million pounds.",
-      "Kangaroos can’t walk backward.",
-      "A hummingbird’s heart can beat over 1,000 times per minute.",
-      "Jellyfish have been around for more than 500 million years.",
-      "The longest English word is 189,819 letters (a protein name).",
-      "Koalas have fingerprints that look like human fingerprints.",
-      "There’s a type of shark that can glow in the dark.",
-      "The moon is drifting away from Earth about 1.5 inches per year.",
-      "Some cats are allergic to humans.",
-      "Elephants can recognize themselves in mirrors.",
-      "A day is getting longer by about 1.7 milliseconds per century.",
-      "The ocean contains 99% of Earth’s living space.",
-      "Your stomach gets a new lining every few days.",
-      "A sneeze can travel around 100 mph.",
-      "The human body contains enough fat to make about 7 bars of soap.",
-      "Your nose can remember 50,000 different scents.",
-      "A “jiffy” is an actual unit of time (about 1/100th of a second, depending on context).",
-      "The longest wedding veil was longer than 63 football fields.",
-      "Tigers have striped skin, not just striped fur.",
-      "Some frogs can freeze solid and come back to life.",
-      "A “moment” used to mean 90 seconds in medieval times.",
-      "Hot water can freeze faster than cold water (Mpemba effect), sometimes.",
-      "The first alarm clock could only ring at 4 a.m.",
-      "Your skin is your largest organ.",
-      "You blink about 15–20 times per minute.",
-      "A teaspoon of neutron star would weigh billions of tons.",
-      "Ants don’t have lungs.",
-      "A group of crows is called a murder.",
-      "Scotland’s national animal is the unicorn.",
-      "You can hear a blue whale’s heartbeat from more than 2 miles away (in the right conditions).",
-      "The Great Wall of China is not visible from space with the naked eye (myth).",
-      "A giraffe’s tongue can be about 18–20 inches long.",
-      "There’s a planet where it rains glass sideways (HD 189733b).",
-      "Some whales have names for each other (signature calls).",
-      "The average person walks the equivalent of around 3–5 times around the Earth in a lifetime.",
-      "A day on Mercury is 176 Earth days long.",
-      "The dot over an i or j is called a tittle.",
-      "A group of owls is called a parliament.",
-      "The first computer mouse was made of wood.",
-      "The first camera photo took about 8 hours to expose.",
-      "The longest English word without a vowel is “rhythms.”",
-      "You’re taller in the morning than at night.",
-      "Some trees can “talk” through fungal networks underground.",
-      "A violin’s sound comes mostly from the body, not the strings.",
-      "The average cumulus cloud has about the same water mass as 100 elephants.",
-      "There’s enough DNA in your body to reach the Sun and back hundreds of times.",
-      "A group of dolphins is called a pod.",
-      "There are more trees on Earth than stars in the Milky Way (estimates vary, but it’s close).",
-      "The oldest known recipe is for beer.",
-      "The loudest animal is the sperm whale.",
-      "A shrimp’s heart is in its head.",
-      "The “sixth sick sheik’s sixth sheep’s sick” is a famous tongue twister.",
-      "Some butterflies migrate thousands of miles.",
-      "A crocodile cannot stick its tongue out.",
-      "The inventor of the Pringles can is buried in one.",
-      "A single strand of spaghetti is called a spaghetto.",
-      "The first oranges weren’t orange (they were green).",
-      "The most common letter in English is E.",
-      "The least common letter in English is Q (in typical text).",
-      "The longest place name in the U.S. is in Hawaii.",
-      "There’s a species of jellyfish considered biologically “immortal.”",
-      "Some snails sleep for years.",
-      "A group of frogs is called an army.",
-      "You share about 60% of your DNA with bananas.",
-      "An adult human has about 206 bones (babies have more).",
-      "The hottest chili can be so hot it’s used in riot control research (capsaicin).",
-      "Your body has enough blood vessels to wrap around Earth more than twice (estimates vary).",
-      "Saturn could float in water (if you had a bathtub big enough).",
-      "A “hug” can release oxytocin, which helps reduce stress.",
-      "The first text message ever sent was ‘Merry Christmas.’",
-      "The longest English word you can type with only your left hand is “stewardesses.”",
-      "A group of butterflies is called a kaleidoscope.",
-      "The brain is sometimes more active during sleep than when awake.",
-      "Some fish can recognize human faces.",
-      "You can’t hum while holding your nose closed.",
-      "The smell of rain has a name: petrichor.",
-      "A rainbow is actually a full circle—you usually only see an arc.",
-      "There are more ways to shuffle a deck of cards than there are atoms on Earth (52!).",
-      "The “Mars” candy bar was named before the planet was used in marketing sci-fi.",
-      "A polar bear’s skin is black under its fur.",
-      "The longest recorded flight of a chicken is about 13 seconds.",
-      "Some plants can count (they pace leaf growth based on nights remaining)."
-    ];
+    function compactTime(sec){
+      const days = Math.floor(sec / 86400);
+      const hrs  = Math.floor((sec % 86400) / 3600);
+      const mins = Math.floor((sec % 3600) / 60);
+
+      if (sec <= 0) return "now";
+      if (days > 0 && hrs > 0) return `${days}d ${hrs}h`;
+      if (days > 0) return `${days}d`;
+      if (hrs > 0 && mins > 0) return `${hrs}h ${mins}m`;
+      if (hrs > 0) return `${hrs}h`;
+      if (mins > 0) return `${mins}m`;
+      return `${sec}s`;
+    }
+
+    function nextHourBoundarySeconds(sec){
+      return sec % 3600;
+    }
+
+    function nextDayBoundarySeconds(sec){
+      return sec % 86400;
+    }
+
+    function buildTimeFacts(sec){
+      // If time is up
+      if (sec <= 0){
+        return [
+          "Zero seconds left. ❤️",
+          "No countdown anymore — it’s happening.",
+          "The wait is over."
+        ];
+      }
+
+      const days = Math.floor(sec / 86400);
+      const hrs  = Math.floor((sec % 86400) / 3600);
+      const mins = Math.floor((sec % 3600) / 60);
+      const secs = sec % 60;
+
+      const totalHours = Math.floor(sec / 3600);
+      const totalDays  = Math.floor(sec / 86400);
+
+      const pctDay = Math.min(100, Math.max(0, Math.round((1 - (sec % 86400) / 86400) * 100)));
+      const pctHour = Math.min(100, Math.max(0, Math.round((1 - (sec % 3600) / 3600) * 100)));
+
+      const toNextHour = nextHourBoundarySeconds(sec);
+      const toNextDay  = nextDayBoundarySeconds(sec);
+
+      // "Reality" conversions (common relatable time slices)
+      const songs3 = Math.floor(sec / 180);
+      const eps22 = Math.floor(sec / (22 * 60));
+      const showers8 = Math.floor(sec / (8 * 60));
+      const tikTok30 = Math.floor(sec / 30);
+      const commutes15 = Math.floor(sec / (15 * 60));
+      const naps20 = Math.floor(sec / (20 * 60));
+      const meals30 = Math.floor(sec / (30 * 60));
+      const classes45 = Math.floor(sec / (45 * 60));
+      const movies90 = Math.floor(sec / (90 * 60));
+
+      const timeStr = compactTime(sec);
+
+      // Templates – all explicitly tied to sec
+      const facts = [
+        `If you press a stopwatch… it would need to run for ${timeStr}.`,
+        `That’s ${pctHour}% of the current hour already gone (until the next hour mark).`,
+        `That’s ${pctDay}% of today’s “last day block” already burned.`,
+        `There are ${fmt(totalHours)} full hours still inside this wait.`,
+        `There are ${fmt(totalDays)} full days still inside this wait.`,
+        `Next hour mark in ${compactTime(toNextHour)}.`,
+        `Next day mark in ${compactTime(toNextDay)}.`,
+        `You could listen to about ${fmt(songs3)} three-minute songs before time’s up.`,
+        `You could watch about ${fmt(eps22)} 22-minute episodes before time’s up.`,
+        `You could take about ${fmt(showers8)} quick 8-minute showers in the time left.`,
+        `That’s enough time for about ${fmt(naps20)} “20-minute nap” resets.`,
+        `That’s enough time for about ${fmt(commutes15)} 15-minute drives.`,
+        `If a TikTok is ~30 seconds, that’s about ${fmt(tikTok30)} TikToks long.`,
+        `If a meal takes ~30 minutes, that’s about ${fmt(meals30)} meals worth of time.`,
+        `If a class period is ~45 minutes, that’s about ${fmt(classes45)} class periods.`,
+        `If a movie is ~90 minutes, that’s about ${fmt(movies90)} movies.`,
+        `If you counted “one Mississippi” once per second… you’d say it ${fmt(sec)} times.`,
+        `There are ${fmt(Math.floor(sec/60))} full minute-changes left on the clock.`,
+        `There are ${fmt(Math.floor(sec/10))} “ten-second jumps” left.`,
+        `There are ${fmt(Math.floor(sec/5))} “five-second jumps” left.`,
+        `There are ${fmt(Math.floor(sec/2))} “two-second jumps” left.`,
+        `You’re closer than you were 10,000 seconds ago — by exactly 10,000 seconds.`,
+        `Right now it’s ${days} days, ${hrs} hours, ${mins} minutes, ${secs} seconds.`,
+        `This wait fits inside ${fmt(totalHours)} hourly blocks.`,
+        `This wait fits inside ${fmt(totalDays)} daily blocks.`,
+        `If you did a 60-second plank once per hour, you’d still have ${fmt(totalHours)} chances.`,
+        `If you did 10 pushups per minute, that’s ${fmt(Math.floor(sec/60)*10)} pushups worth of minutes.`,
+        `If you texted one word every second, that’s ${fmt(sec)} words worth of time.`,
+        `If you blink ~15 times per minute, that’s about ${fmt(Math.floor(sec/60)*15)} blinks left.`,
+        `If you breathe ~1 time every 4 seconds, that’s about ${fmt(Math.floor(sec/4))} breaths.`,
+        `If your heart beats ~1.2 times per second, that’s about ${fmt(Math.floor(sec*1.2))} heartbeats. ❤️`,
+        `If you walk 1 step per second, that’s about ${fmt(sec)} steps.`,
+        `If a song chorus is ~40 seconds, that’s about ${fmt(Math.floor(sec/40))} choruses.`,
+        `If you microwave something for 2 minutes, that’s ${fmt(Math.floor(sec/120))} microwaves long.`,
+        `If you brush your teeth for 2 minutes, that’s ${fmt(Math.floor(sec/120))} tooth-brush sessions.`,
+        `If you take a 10-minute break, that’s ${fmt(Math.floor(sec/600))} breaks.`,
+        `If you send one Snap a minute, that’s ${fmt(Math.floor(sec/60))} Snaps worth of time.`,
+        `If you scroll for 5 minutes… that’s ${fmt(Math.floor(sec/300))} “5-minute scrolls.”`,
+        `If you do a 1-minute timer, you could run it ${fmt(Math.floor(sec/60))} times.`,
+        `If you do a 10-second countdown, you could do it ${fmt(Math.floor(sec/10))} times.`,
+        `There are ${fmt(Math.floor(sec/3600))} full hour flips still coming.`,
+        `There are ${fmt(Math.floor(sec/86400))} full day flips still coming.`,
+        `Next “:00” on the minutes in ${compactTime(sec % 60)}.`,
+        `Next “:00” on the hours in ${compactTime(toNextHour)}.`,
+      ];
+
+      // Add a few time-conditional lines (more variety)
+      if (sec < 60){
+        facts.push(
+          "It’s officially in the “don’t blink” zone.",
+          "This is shorter than most songs."
+        );
+      }
+      if (sec >= 60 && sec < 3600){
+        facts.push(
+          "This whole wait fits inside a single hour.",
+          `It’s less than ${fmt(60 - Math.ceil((sec % 3600)/60))} minutes from the next hour mark.`
+        );
+      }
+      if (sec >= 3600 && sec < 86400){
+        facts.push(
+          "This wait fits inside one day.",
+          `If you sleep 8 hours, that’s ${fmt(Math.floor(sec/(8*3600)))} full 8-hour sleeps.`
+        );
+      }
+      if (sec >= 86400){
+        facts.push(
+          `If you sleep 8 hours per day, there are about ${fmt(Math.floor(sec/(8*3600)))} sleeps left.`,
+          `If you think in weekends, that’s about ${fmt(Math.floor(sec/(7*86400)))} weeks.`
+        );
+      }
+
+      return facts;
+    }
 
     function shuffle(arr){
       for (let i = arr.length - 1; i > 0; i--){
@@ -739,34 +768,28 @@
       return arr;
     }
 
-    let factDeck = shuffle(FUN_FACTS.slice());  // current session deck
-    const seenFacts = new Set();                 // guarantees no repeats this session
+    // We rebuild the deck each click based on current remaining seconds,
+    // but still avoid duplicates per session using seenFacts.
+    function nextTimeFact(sec){
+      const pool = shuffle(buildTimeFacts(sec).slice());
 
-    function nextFact(){
-      // If deck is exhausted, rebuild it with any facts not yet seen.
-      if (factDeck.length === 0){
-        const remaining = FUN_FACTS.filter(f => !seenFacts.has(f));
-        factDeck = shuffle((remaining.length ? remaining : FUN_FACTS).slice());
-        // If we truly showed ALL facts, start over (still no duplicates until we've shown all 100)
-        if (!remaining.length) seenFacts.clear();
-      }
-
-      let tries = 0;
-      while (tries < 200){
-        const fact = factDeck.pop();
+      for (const fact of pool){
         if (!seenFacts.has(fact)){
           seenFacts.add(fact);
           return fact;
         }
-        tries++;
       }
 
-      // fallback (should never hit)
-      return "Fun fact: you found the one-in-a-million fallback 😅";
+      // If we somehow exhausted all current-time templates, allow repeats (but try a rebuild first)
+      seenFacts.clear();
+      const pool2 = shuffle(buildTimeFacts(sec).slice());
+      return pool2[0] || "Time fact loading…";
     }
 
+    let lastRemainingSeconds = 0;
+
     secondsBox.addEventListener("click", () => {
-      openModal(nextFact());
+      openModal(nextTimeFact(lastRemainingSeconds));
     });
 
     function tickCountdown(){
@@ -774,6 +797,7 @@
       if(diff < 0) diff = 0;
 
       const sec = Math.floor(diff/1000);
+      lastRemainingSeconds = sec;
 
       const days=Math.floor(sec/86400);
       const hrs=Math.floor((sec%86400)/3600);

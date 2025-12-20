@@ -2,12 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- ✅ iPhone safe-area + full screen sizing -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+
   <title>Countdown to Lia</title>
+
+  <!-- ✅ Makes Safari / iOS UI match your background (reduces the "white bar" look) -->
+  <meta name="theme-color" content="#0b1020">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Countdown ❤️">
 
   <!-- Favicon ❤️ -->
   <link rel="icon" type="image/svg+xml"
         href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">❤️</text></svg>'>
+
+  <!-- ✅ Home Screen icon (add this file to your repo root) -->
+  <!-- Put a 180x180 PNG named apple-touch-icon.png next to index.html -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <!-- ✅ Optional PWA manifest (create manifest.webmanifest + icons) -->
+  <link rel="manifest" href="manifest.webmanifest">
 
   <style>
     :root{
@@ -28,13 +44,25 @@
 
     *{ box-sizing:border-box; }
 
+    /* ✅ Prevent white behind Safari UI / safe areas */
+    html, body{
+      height:100%;
+      background:#0b1020;
+    }
+
     body{
       margin:0;
       min-height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:32px 16px;
+
+      /* ✅ safe-area aware padding */
+      padding:
+        calc(32px + env(safe-area-inset-top))
+        16px
+        calc(32px + env(safe-area-inset-bottom));
+
       color:var(--text);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 
@@ -45,6 +73,7 @@
 
       transition: background 600ms ease, color 400ms ease;
       overflow-x:hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* Starfield canvas behind everything */
@@ -109,7 +138,7 @@
 
     /* ✅ Rotator (now UNDER countdown) */
     .rotator{
-      margin: 14px 0 8px; /* 👈 changed */
+      margin: 14px 0 8px;
       min-height: 20px;
       font-size: 15px;
       color: rgba(234,240,255,.92);
@@ -224,7 +253,7 @@
 
     /* hint */
     .hint{
-      margin: 8px 0 18px; /* 👈 slightly tighter since rotator is above it now */
+      margin: 8px 0 18px;
       font-size: 13px;
       color: rgba(183,192,221,.9);
       letter-spacing: .02em;
@@ -362,7 +391,6 @@
 
     <!-- PANEL: COUNTDOWN -->
     <div class="panel active" id="panelCountdown">
-      <!-- ✅ REPLACED CARD START -->
       <div class="card">
         <h1>Will Sees Lia</h1>
 
@@ -380,10 +408,10 @@
           </div>
         </div>
 
-        <!-- ✅ rotator NOW under countdown -->
+        <!-- rotator under countdown -->
         <div class="rotator" id="rotatorCountdown"></div>
 
-        <!-- ✅ hint under rotator -->
+        <!-- hint under rotator -->
         <div class="hint">✨ Psst… click <b>SECONDS</b> for a secret</div>
 
         <div class="sectionTitle">That’s</div>
@@ -403,7 +431,6 @@
           </div>
         </div>
       </div>
-      <!-- ✅ REPLACED CARD END -->
 
       <div class="soon">See you soon ❤️</div>
     </div>

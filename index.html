@@ -291,7 +291,7 @@
     .modalOverlay.show{ display:flex; }
 
     .modal{
-      width: min(540px, 100%);
+      width: min(560px, 100%);
       border-radius: 20px;
       background: rgba(20, 14, 46, .92);
       border: 1px solid rgba(255,255,255,.12);
@@ -590,6 +590,8 @@
       "Almost there (soon).",
       "This is the part where time crawls 😭",
       "Okay… okay… okay…",
+      "See you on the other side ❤️",
+      "Time’s moving… even if it doesn’t feel like it."
     ];
 
     const rotateSinceLines = [
@@ -598,6 +600,7 @@
       "Feels longer than it is.",
       "Counting up until the next one.",
       "Time moves… but not fast enough.",
+      "The clock keeps going, so do we."
     ];
 
     function startRotator(el, lines){
@@ -617,147 +620,202 @@
     }
 
     // -------------------------------------------------------
-    // Time-based "fun facts" (NO duplicates per session)
-    // - all facts are derived from time remaining (sec)
-    // - avoids boring "that's X minutes/hours" statements
-    // - 80-100+ unique-ish lines via template expansion
+    // Better "fun facts" (NO obvious "there are X hours left")
+    // - derived from seconds remaining
+    // - category buckets (space, bio, tech, media, nature, micro)
+    // - avoids boring "no shit" conversions
+    // - avoids duplicates per session
     // -------------------------------------------------------
     const seenFacts = new Set();
+    let lastRemainingSeconds = 0;
 
-    function compactTime(sec){
-      const days = Math.floor(sec / 86400);
-      const hrs  = Math.floor((sec % 86400) / 3600);
-      const mins = Math.floor((sec % 3600) / 60);
+    function clamp(n, a, b){ return Math.min(b, Math.max(a, n)); }
+    function rnd(n){ return Math.floor(n); }
+    function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
-      if (sec <= 0) return "now";
-      if (days > 0 && hrs > 0) return `${days}d ${hrs}h`;
-      if (days > 0) return `${days}d`;
-      if (hrs > 0 && mins > 0) return `${hrs}h ${mins}m`;
-      if (hrs > 0) return `${hrs}h`;
-      if (mins > 0) return `${mins}m`;
-      return `${sec}s`;
+    function fmtSmart(n){
+      // show big numbers with commas
+      return Math.round(n).toLocaleString("en-US");
     }
 
-    function nextHourBoundarySeconds(sec){
-      return sec % 3600;
+    function pluralWord(n, one, many){
+      return (Math.round(n) === 1 ? one : many);
     }
 
-    function nextDayBoundarySeconds(sec){
-      return sec % 86400;
-    }
+    // Rates / constants (rough but fun)
+    const CONST = {
+      // Space / physics
+      earthOrbitSpeed_mps: 29780,            // Earth's orbital speed around Sun
+      earthRotationSpeedEquator_mps: 465.1,  // Earth spin at equator
+      issOrbitsPerDay: 15.5,                 // ~15-16 orbits/day
+      earthCircumference_km: 40075,
+      speedOfLight_kmps: 299792.458,
+      speedOfSound_mps: 343,
 
-    function buildTimeFacts(sec){
-      // If time is up
-      if (sec <= 0){
+      // Nature
+      hummingbirdFlapsPerSec: 60,            // ~50-80; use 60
+      cheetah_mps: 29,                       // ~104 km/h
+      sloth_mps: 0.12,                       // ~0.4 km/h
+
+      // Niagara Falls (order-of-magnitude)
+      niagara_m3ps: 2400,                    // ~2,400 m^3/s typical-ish
+      waterDensity_kgm3: 1000,
+
+      // Human
+      heartbeatsPerSec: 1.2,                 // ~72 bpm
+      breathsPerSec: 0.25,                   // ~15 bpm
+      blinksPerSec: 0.25,                    // ~15/min
+      rbcPerSec: 2_000_000,                  // rough ballpark
+      skinCellsPerSec: 40_000,               // rough ballpark
+      hairMicrometersPerSec: 0.004,          // ~0.35 mm/day => ~4 µm/sec? (this is intentionally tiny)
+      
+      // Digital (very rough global averages)
+      emailsPerSec: 3_000_000,
+      googleSearchesPerSec: 99_000,
+      tweetsPerSec: 6_000,
+      youtubeHoursPerSec: 14,                // ~500 hours/min => ~8.33 hours/sec; using 14 to feel modern/rounded
+
+      // Media
+      popSongSec: 180,
+      tiktokSec: 30,
+      officeEpisodeSec: 22 * 60,
+      shrekSec: 95 * 60,
+      titanicSec: 195 * 60,
+      barbieSec: 114 * 60,
+      allTooWell10Sec: 10 * 60
+    };
+
+    function buildFacts(seconds){
+      if (seconds <= 0){
         return [
-          "Zero seconds left. ❤️",
-          "No countdown anymore — it’s happening.",
-          "The wait is over."
+          "No more waiting — it’s happening. ❤️",
+          "Time’s up. Go go go.",
+          "The countdown is officially done."
         ];
       }
 
-      const days = Math.floor(sec / 86400);
-      const hrs  = Math.floor((sec % 86400) / 3600);
-      const mins = Math.floor((sec % 3600) / 60);
-      const secs = sec % 60;
+      const sec = seconds;
 
-      const totalHours = Math.floor(sec / 3600);
-      const totalDays  = Math.floor(sec / 86400);
+      // --- Space / physics ---
+      const earthOrbit_km = (CONST.earthOrbitSpeed_mps * sec) / 1000;
+      const earthSpin_m = CONST.earthRotationSpeedEquator_mps * sec;
+      const issOrbits = (CONST.issOrbitsPerDay * sec) / 86400;
+      const lightTripsAroundEarth = (CONST.speedOfLight_kmps * sec) / CONST.earthCircumference_km;
+      const sound_km = (CONST.speedOfSound_mps * sec) / 1000;
 
-      const pctDay = Math.min(100, Math.max(0, Math.round((1 - (sec % 86400) / 86400) * 100)));
-      const pctHour = Math.min(100, Math.max(0, Math.round((1 - (sec % 3600) / 3600) * 100)));
+      // "Mars rover drive" depends; keep it playful/low
+      const marsRover_m = sec * 0.04; // ~0.04 m/s (~3.5 km/day) fun-ish
 
-      const toNextHour = nextHourBoundarySeconds(sec);
-      const toNextDay  = nextDayBoundarySeconds(sec);
+      // Lightning strikes worldwide: ~40-50/sec
+      const lightning = sec * 44;
 
-      // "Reality" conversions (common relatable time slices)
-      const songs3 = Math.floor(sec / 180);
-      const eps22 = Math.floor(sec / (22 * 60));
-      const showers8 = Math.floor(sec / (8 * 60));
-      const tikTok30 = Math.floor(sec / 30);
-      const commutes15 = Math.floor(sec / (15 * 60));
-      const naps20 = Math.floor(sec / (20 * 60));
-      const meals30 = Math.floor(sec / (30 * 60));
-      const classes45 = Math.floor(sec / (45 * 60));
-      const movies90 = Math.floor(sec / (90 * 60));
+      // --- Biology ---
+      const heartbeats = sec * CONST.heartbeatsPerSec;
+      const breaths = sec * CONST.breathsPerSec;
+      const blinks = sec * CONST.blinksPerSec;
+      const rbcs = sec * CONST.rbcPerSec;
+      const skinCells = sec * CONST.skinCellsPerSec;
+      const hair_um = sec * CONST.hairMicrometersPerSec;
 
-      const timeStr = compactTime(sec);
+      // --- Digital ---
+      const emails = sec * CONST.emailsPerSec;
+      const searches = sec * CONST.googleSearchesPerSec;
+      const tweets = sec * CONST.tweetsPerSec;
+      const ytHours = sec * CONST.youtubeHoursPerSec;
+      const frames60 = sec * 60;
 
-      // Templates – all explicitly tied to sec
-      const facts = [
-        `If you press a stopwatch… it would need to run for ${timeStr}.`,
-        `That’s ${pctHour}% of the current hour already gone (until the next hour mark).`,
-        `That’s ${pctDay}% of today’s “last day block” already burned.`,
-        `There are ${fmt(totalHours)} full hours still inside this wait.`,
-        `There are ${fmt(totalDays)} full days still inside this wait.`,
-        `Next hour mark in ${compactTime(toNextHour)}.`,
-        `Next day mark in ${compactTime(toNextDay)}.`,
-        `You could listen to about ${fmt(songs3)} three-minute songs before time’s up.`,
-        `You could watch about ${fmt(eps22)} 22-minute episodes before time’s up.`,
-        `You could take about ${fmt(showers8)} quick 8-minute showers in the time left.`,
-        `That’s enough time for about ${fmt(naps20)} “20-minute nap” resets.`,
-        `That’s enough time for about ${fmt(commutes15)} 15-minute drives.`,
-        `If a TikTok is ~30 seconds, that’s about ${fmt(tikTok30)} TikToks long.`,
-        `If a meal takes ~30 minutes, that’s about ${fmt(meals30)} meals worth of time.`,
-        `If a class period is ~45 minutes, that’s about ${fmt(classes45)} class periods.`,
-        `If a movie is ~90 minutes, that’s about ${fmt(movies90)} movies.`,
-        `If you counted “one Mississippi” once per second… you’d say it ${fmt(sec)} times.`,
-        `There are ${fmt(Math.floor(sec/60))} full minute-changes left on the clock.`,
-        `There are ${fmt(Math.floor(sec/10))} “ten-second jumps” left.`,
-        `There are ${fmt(Math.floor(sec/5))} “five-second jumps” left.`,
-        `There are ${fmt(Math.floor(sec/2))} “two-second jumps” left.`,
-        `You’re closer than you were 10,000 seconds ago — by exactly 10,000 seconds.`,
-        `Right now it’s ${days} days, ${hrs} hours, ${mins} minutes, ${secs} seconds.`,
-        `This wait fits inside ${fmt(totalHours)} hourly blocks.`,
-        `This wait fits inside ${fmt(totalDays)} daily blocks.`,
-        `If you did a 60-second plank once per hour, you’d still have ${fmt(totalHours)} chances.`,
-        `If you did 10 pushups per minute, that’s ${fmt(Math.floor(sec/60)*10)} pushups worth of minutes.`,
-        `If you texted one word every second, that’s ${fmt(sec)} words worth of time.`,
-        `If you blink ~15 times per minute, that’s about ${fmt(Math.floor(sec/60)*15)} blinks left.`,
-        `If you breathe ~1 time every 4 seconds, that’s about ${fmt(Math.floor(sec/4))} breaths.`,
-        `If your heart beats ~1.2 times per second, that’s about ${fmt(Math.floor(sec*1.2))} heartbeats. ❤️`,
-        `If you walk 1 step per second, that’s about ${fmt(sec)} steps.`,
-        `If a song chorus is ~40 seconds, that’s about ${fmt(Math.floor(sec/40))} choruses.`,
-        `If you microwave something for 2 minutes, that’s ${fmt(Math.floor(sec/120))} microwaves long.`,
-        `If you brush your teeth for 2 minutes, that’s ${fmt(Math.floor(sec/120))} tooth-brush sessions.`,
-        `If you take a 10-minute break, that’s ${fmt(Math.floor(sec/600))} breaks.`,
-        `If you send one Snap a minute, that’s ${fmt(Math.floor(sec/60))} Snaps worth of time.`,
-        `If you scroll for 5 minutes… that’s ${fmt(Math.floor(sec/300))} “5-minute scrolls.”`,
-        `If you do a 1-minute timer, you could run it ${fmt(Math.floor(sec/60))} times.`,
-        `If you do a 10-second countdown, you could do it ${fmt(Math.floor(sec/10))} times.`,
-        `There are ${fmt(Math.floor(sec/3600))} full hour flips still coming.`,
-        `There are ${fmt(Math.floor(sec/86400))} full day flips still coming.`,
-        `Next “:00” on the minutes in ${compactTime(sec % 60)}.`,
-        `Next “:00” on the hours in ${compactTime(toNextHour)}.`,
+      // --- Media ---
+      const popSongs = sec / CONST.popSongSec;
+      const tiktoks = sec / CONST.tiktokSec;
+      const officeEps = sec / CONST.officeEpisodeSec;
+      const shreks = sec / CONST.shrekSec;
+      const titanics = sec / CONST.titanicSec;
+      const barbies = sec / CONST.barbieSec;
+      const allTooWell = sec / CONST.allTooWell10Sec;
+
+      // --- Micro activities ---
+      const elevatorTrips = sec / 35;  // typical ride
+      const boilWater = sec / 300;     // ~5 min
+      const popcorn = sec / 150;       // ~2.5 min
+      const shoes = sec / 20;          // ~20s
+      const brush = sec / 120;         // 2 min
+      const redLights = sec / 60;      // 1 min red
+
+      // --- Nature ---
+      const humFlaps = sec * CONST.hummingbirdFlapsPerSec;
+      const cheetah_m = sec * CONST.cheetah_mps;
+      const sloth_m = sec * CONST.sloth_mps;
+
+      const niagara_tons =
+        (CONST.niagara_m3ps * sec * CONST.waterDensity_kgm3) / 1000; // kg -> metric tons
+
+      // Build a big pool (each line is “cool fact” style)
+      const pool = [
+        // 🪐 Cosmic & Physics
+        `🪐 While you wait, Earth will travel about ${fmtSmart(earthOrbit_km)} kilometers around the Sun.`,
+        `🪐 While you wait, Earth will spin about ${fmtSmart(earthSpin_m)} meters at the equator.`,
+        `🪐 The International Space Station will orbit Earth about ${fmtSmart(issOrbits)} ${pluralWord(issOrbits,"time","times")}.`,
+        `🪐 A beam of light could circle Earth about ${fmtSmart(lightTripsAroundEarth)} ${pluralWord(lightTripsAroundEarth,"time","times")}.`,
+        `🪐 A Mars rover could drive about ${fmtSmart(marsRover_m)} meters in this time (slow… but unstoppable).`,
+        `🪐 If you shouted right now, the sound could travel about ${fmtSmart(sound_km)} kilometers.`,
+        `🪐 Lightning will strike Earth roughly ${fmtSmart(lightning)} times while you wait.`,
+
+        // 🧬 Biological (You)
+        `🧬 Your heart will beat roughly ${fmtSmart(heartbeats)} times. ❤️`,
+        `🧬 You’ll take about ${fmtSmart(breaths)} breaths.`,
+        `🧬 You’ll blink about ${fmtSmart(blinks)} times.`,
+        `🧬 Your body will produce about ${fmtSmart(rbcs)} new red blood cells.`,
+        `🧬 You’ll shed roughly ${fmtSmart(skinCells)} skin cells.`,
+        `🧬 Your hair will grow about ${fmtSmart(hair_um)} micrometers.`,
+
+        // 📱 Digital & Tech
+        `📱 About ${fmtSmart(emails)} emails will be sent globally in this time.`,
+        `📱 There will be about ${fmtSmart(searches)} Google searches while you wait.`,
+        `📱 About ${fmtSmart(tweets)} tweets will be posted.`,
+        `📱 Around ${fmtSmart(ytHours)} hours of new video will be uploaded to YouTube.`,
+        `📱 A video game running at 60fps would render about ${fmtSmart(frames60)} frames.`,
+
+        // 🎬 Movies, Music & Media
+        `🎬 You could listen to about ${fmtSmart(popSongs)} average pop ${pluralWord(popSongs,"song","songs")}.`,
+        `🎬 You could doom-scroll about ${fmtSmart(tiktoks)} TikToks.`,
+        `🎬 You could watch about ${fmtSmart(officeEps)} episodes of The Office (22 min each).`,
+        `🎬 You could watch "Shrek" about ${fmtSmart(shreks)} ${pluralWord(shreks,"time","times")}.`,
+        `🎬 You could watch "Titanic" about ${fmtSmart(titanics)} ${pluralWord(titanics,"time","times")}.`,
+        `🎬 This is enough time to watch the Barbie movie about ${fmtSmart(barbies)} ${pluralWord(barbies,"time","times")}.`,
+        `🎬 You could listen to “All Too Well (10 min version)” about ${fmtSmart(allTooWell)} ${pluralWord(allTooWell,"time","times")}.`,
+
+        // ☕ Micro-Activities
+        `☕ Equivalent to riding an elevator about ${fmtSmart(elevatorTrips)} ${pluralWord(elevatorTrips,"time","times")}.`,
+        `☕ You could boil a pot of water about ${fmtSmart(boilWater)} ${pluralWord(boilWater,"time","times")}.`,
+        `☕ You could pop about ${fmtSmart(popcorn)} bags of popcorn.`,
+        `☕ You could tie your shoes about ${fmtSmart(shoes)} ${pluralWord(shoes,"time","times")}.`,
+        `☕ You could brush your teeth about ${fmtSmart(brush)} ${pluralWord(brush,"time","times")}.`,
+        `☕ Equivalent to sitting at a red light about ${fmtSmart(redLights)} ${pluralWord(redLights,"time","times")}.`,
+
+        // 🌿 Nature & Animals
+        `🌿 A hummingbird could flap its wings about ${fmtSmart(humFlaps)} times.`,
+        `🌿 A cheetah could run about ${fmtSmart(cheetah_m)} meters.`,
+        `🌿 A sloth could travel about ${fmtSmart(sloth_m)} meters.`,
+        `🌿 About ${fmtSmart(niagara_tons)} tons of water will flow over Niagara Falls while you wait.`
       ];
 
-      // Add a few time-conditional lines (more variety)
+      // Add “variety” alternatives based on scale so it feels smarter
       if (sec < 60){
-        facts.push(
-          "It’s officially in the “don’t blink” zone.",
-          "This is shorter than most songs."
+        pool.push(
+          "⚡ Blink and you’ll miss it.",
+          "⚡ This is basically one song chorus away."
         );
       }
-      if (sec >= 60 && sec < 3600){
-        facts.push(
-          "This whole wait fits inside a single hour.",
-          `It’s less than ${fmt(60 - Math.ceil((sec % 3600)/60))} minutes from the next hour mark.`
-        );
-      }
-      if (sec >= 3600 && sec < 86400){
-        facts.push(
-          "This wait fits inside one day.",
-          `If you sleep 8 hours, that’s ${fmt(Math.floor(sec/(8*3600)))} full 8-hour sleeps.`
-        );
-      }
-      if (sec >= 86400){
-        facts.push(
-          `If you sleep 8 hours per day, there are about ${fmt(Math.floor(sec/(8*3600)))} sleeps left.`,
-          `If you think in weekends, that’s about ${fmt(Math.floor(sec/(7*86400)))} weeks.`
+      if (sec >= 3600 * 24 * 2){
+        // Longer waits get a couple more “big” facts
+        const moonDistanceTrips = (CONST.speedOfLight_kmps * sec) / 384400; // light-to-moon
+        pool.push(
+          `🌙 A beam of light could reach the Moon about ${fmtSmart(moonDistanceTrips)} ${pluralWord(moonDistanceTrips,"time","times")}.`,
+          `🛰️ The ISS would rack up about ${fmtSmart(issOrbits)} orbits in that time.`
         );
       }
 
-      return facts;
+      return pool;
     }
 
     function shuffle(arr){
@@ -768,10 +826,8 @@
       return arr;
     }
 
-    // We rebuild the deck each click based on current remaining seconds,
-    // but still avoid duplicates per session using seenFacts.
-    function nextTimeFact(sec){
-      const pool = shuffle(buildTimeFacts(sec).slice());
+    function nextFunFact(seconds){
+      const pool = shuffle(buildFacts(seconds).slice());
 
       for (const fact of pool){
         if (!seenFacts.has(fact)){
@@ -780,16 +836,13 @@
         }
       }
 
-      // If we somehow exhausted all current-time templates, allow repeats (but try a rebuild first)
+      // exhausted -> allow repeats
       seenFacts.clear();
-      const pool2 = shuffle(buildTimeFacts(sec).slice());
-      return pool2[0] || "Time fact loading…";
+      return pool[0] || "Fun fact loading…";
     }
 
-    let lastRemainingSeconds = 0;
-
     secondsBox.addEventListener("click", () => {
-      openModal(nextTimeFact(lastRemainingSeconds));
+      openModal(nextFunFact(lastRemainingSeconds));
     });
 
     function tickCountdown(){

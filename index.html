@@ -692,63 +692,38 @@
       }, 7000);
     }
 
-    // -------------------------------------------------------
-    // Better "fun facts" (NO obvious "there are X hours left")
-    // - derived from seconds remaining
-    // - category buckets (space, bio, tech, media, nature, micro)
-    // - avoids boring "no shit" conversions
-    // - avoids duplicates per session
-    // -------------------------------------------------------
     const seenFacts = new Set();
     let lastRemainingSeconds = 0;
 
-    function clamp(n, a, b){ return Math.min(b, Math.max(a, n)); }
-    function rnd(n){ return Math.floor(n); }
-    function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
-
     function fmtSmart(n){
-      // show big numbers with commas
       return Math.round(n).toLocaleString("en-US");
     }
-
     function pluralWord(n, one, many){
       return (Math.round(n) === 1 ? one : many);
     }
 
-    // Rates / constants (rough but fun)
     const CONST = {
-      // Space / physics
-      earthOrbitSpeed_mps: 29780,            // Earth's orbital speed around Sun
-      earthRotationSpeedEquator_mps: 465.1,  // Earth spin at equator
-      issOrbitsPerDay: 15.5,                 // ~15-16 orbits/day
+      earthOrbitSpeed_mps: 29780,
+      earthRotationSpeedEquator_mps: 465.1,
+      issOrbitsPerDay: 15.5,
       earthCircumference_km: 40075,
       speedOfLight_kmps: 299792.458,
       speedOfSound_mps: 343,
-
-      // Nature
-      hummingbirdFlapsPerSec: 60,            // ~50-80; use 60
-      cheetah_mps: 29,                       // ~104 km/h
-      sloth_mps: 0.12,                       // ~0.4 km/h
-
-      // Niagara Falls (order-of-magnitude)
-      niagara_m3ps: 2400,                    // ~2,400 m^3/s typical-ish
+      hummingbirdFlapsPerSec: 60,
+      cheetah_mps: 29,
+      sloth_mps: 0.12,
+      niagara_m3ps: 2400,
       waterDensity_kgm3: 1000,
-
-      // Human
-      heartbeatsPerSec: 1.2,                 // ~72 bpm
-      breathsPerSec: 0.25,                   // ~15 bpm
-      blinksPerSec: 0.25,                    // ~15/min
-      rbcPerSec: 2_000_000,                  // rough ballpark
-      skinCellsPerSec: 40_000,               // rough ballpark
-      hairMicrometersPerSec: 0.004,          // ~0.35 mm/day => ~4 µm/sec? (this is intentionally tiny)
-      
-      // Digital (very rough global averages)
+      heartbeatsPerSec: 1.2,
+      breathsPerSec: 0.25,
+      blinksPerSec: 0.25,
+      rbcPerSec: 2_000_000,
+      skinCellsPerSec: 40_000,
+      hairMicrometersPerSec: 0.004,
       emailsPerSec: 3_000_000,
       googleSearchesPerSec: 99_000,
       tweetsPerSec: 6_000,
-      youtubeHoursPerSec: 14,                // ~500 hours/min => ~8.33 hours/sec; using 14 to feel modern/rounded
-
-      // Media
+      youtubeHoursPerSec: 14,
       popSongSec: 180,
       tiktokSec: 30,
       officeEpisodeSec: 22 * 60,
@@ -769,20 +744,14 @@
 
       const sec = seconds;
 
-      // --- Space / physics ---
       const earthOrbit_km = (CONST.earthOrbitSpeed_mps * sec) / 1000;
       const earthSpin_m = CONST.earthRotationSpeedEquator_mps * sec;
       const issOrbits = (CONST.issOrbitsPerDay * sec) / 86400;
       const lightTripsAroundEarth = (CONST.speedOfLight_kmps * sec) / CONST.earthCircumference_km;
       const sound_km = (CONST.speedOfSound_mps * sec) / 1000;
-
-      // "Mars rover drive" depends; keep it playful/low
-      const marsRover_m = sec * 0.04; // ~0.04 m/s (~3.5 km/day) fun-ish
-
-      // Lightning strikes worldwide: ~40-50/sec
+      const marsRover_m = sec * 0.04;
       const lightning = sec * 44;
 
-      // --- Biology ---
       const heartbeats = sec * CONST.heartbeatsPerSec;
       const breaths = sec * CONST.breathsPerSec;
       const blinks = sec * CONST.blinksPerSec;
@@ -790,14 +759,12 @@
       const skinCells = sec * CONST.skinCellsPerSec;
       const hair_um = sec * CONST.hairMicrometersPerSec;
 
-      // --- Digital ---
       const emails = sec * CONST.emailsPerSec;
       const searches = sec * CONST.googleSearchesPerSec;
       const tweets = sec * CONST.tweetsPerSec;
       const ytHours = sec * CONST.youtubeHoursPerSec;
       const frames60 = sec * 60;
 
-      // --- Media ---
       const popSongs = sec / CONST.popSongSec;
       const tiktoks = sec / CONST.tiktokSec;
       const officeEps = sec / CONST.officeEpisodeSec;
@@ -806,25 +773,21 @@
       const barbies = sec / CONST.barbieSec;
       const allTooWell = sec / CONST.allTooWell10Sec;
 
-      // --- Micro activities ---
-      const elevatorTrips = sec / 35;  // typical ride
-      const boilWater = sec / 300;     // ~5 min
-      const popcorn = sec / 150;       // ~2.5 min
-      const shoes = sec / 20;          // ~20s
-      const brush = sec / 120;         // 2 min
-      const redLights = sec / 60;      // 1 min red
+      const elevatorTrips = sec / 35;
+      const boilWater = sec / 300;
+      const popcorn = sec / 150;
+      const shoes = sec / 20;
+      const brush = sec / 120;
+      const redLights = sec / 60;
 
-      // --- Nature ---
       const humFlaps = sec * CONST.hummingbirdFlapsPerSec;
       const cheetah_m = sec * CONST.cheetah_mps;
       const sloth_m = sec * CONST.sloth_mps;
 
       const niagara_tons =
-        (CONST.niagara_m3ps * sec * CONST.waterDensity_kgm3) / 1000; // kg -> metric tons
+        (CONST.niagara_m3ps * sec * CONST.waterDensity_kgm3) / 1000;
 
-      // Build a big pool (each line is “cool fact” style)
       const pool = [
-        // 🪐 Cosmic & Physics
         `🪐 While you wait, Earth will travel about ${fmtSmart(earthOrbit_km)} kilometers around the Sun.`,
         `🪐 While you wait, Earth will spin about ${fmtSmart(earthSpin_m)} meters at the equator.`,
         `🪐 The International Space Station will orbit Earth about ${fmtSmart(issOrbits)} ${pluralWord(issOrbits,"time","times")}.`,
@@ -832,23 +795,17 @@
         `🪐 A Mars rover could drive about ${fmtSmart(marsRover_m)} meters in this time (slow… but unstoppable).`,
         `🪐 If you shouted right now, the sound could travel about ${fmtSmart(sound_km)} kilometers.`,
         `🪐 Lightning will strike Earth roughly ${fmtSmart(lightning)} times while you wait.`,
-
-        // 🧬 Biological (You)
         `🧬 Your heart will beat roughly ${fmtSmart(heartbeats)} times. ❤️`,
         `🧬 You’ll take about ${fmtSmart(breaths)} breaths.`,
         `🧬 You’ll blink about ${fmtSmart(blinks)} times.`,
         `🧬 Your body will produce about ${fmtSmart(rbcs)} new red blood cells.`,
         `🧬 You’ll shed roughly ${fmtSmart(skinCells)} skin cells.`,
         `🧬 Your hair will grow about ${fmtSmart(hair_um)} micrometers.`,
-
-        // 📱 Digital & Tech
         `📱 About ${fmtSmart(emails)} emails will be sent globally in this time.`,
         `📱 There will be about ${fmtSmart(searches)} Google searches while you wait.`,
         `📱 About ${fmtSmart(tweets)} tweets will be posted.`,
         `📱 Around ${fmtSmart(ytHours)} hours of new video will be uploaded to YouTube.`,
         `📱 A video game running at 60fps would render about ${fmtSmart(frames60)} frames.`,
-
-        // 🎬 Movies, Music & Media
         `🎬 You could listen to about ${fmtSmart(popSongs)} average pop ${pluralWord(popSongs,"song","songs")}.`,
         `🎬 You could doom-scroll about ${fmtSmart(tiktoks)} TikToks.`,
         `🎬 You could watch about ${fmtSmart(officeEps)} episodes of The Office (22 min each).`,
@@ -856,37 +813,17 @@
         `🎬 You could watch "Titanic" about ${fmtSmart(titanics)} ${pluralWord(titanics,"time","times")}.`,
         `🎬 This is enough time to watch the Barbie movie about ${fmtSmart(barbies)} ${pluralWord(barbies,"time","times")}.`,
         `🎬 You could listen to “All Too Well (10 min version)” about ${fmtSmart(allTooWell)} ${pluralWord(allTooWell,"time","times")}.`,
-
-        // ☕ Micro-Activities
         `☕ Equivalent to riding an elevator about ${fmtSmart(elevatorTrips)} ${pluralWord(elevatorTrips,"time","times")}.`,
         `☕ You could boil a pot of water about ${fmtSmart(boilWater)} ${pluralWord(boilWater,"time","times")}.`,
         `☕ You could pop about ${fmtSmart(popcorn)} bags of popcorn.`,
         `☕ You could tie your shoes about ${fmtSmart(shoes)} ${pluralWord(shoes,"time","times")}.`,
         `☕ You could brush your teeth about ${fmtSmart(brush)} ${pluralWord(brush,"time","times")}.`,
         `☕ Equivalent to sitting at a red light about ${fmtSmart(redLights)} ${pluralWord(redLights,"time","times")}.`,
-
-        // 🌿 Nature & Animals
         `🌿 A hummingbird could flap its wings about ${fmtSmart(humFlaps)} times.`,
         `🌿 A cheetah could run about ${fmtSmart(cheetah_m)} meters.`,
         `🌿 A sloth could travel about ${fmtSmart(sloth_m)} meters.`,
         `🌿 About ${fmtSmart(niagara_tons)} tons of water will flow over Niagara Falls while you wait.`
       ];
-
-      // Add “variety” alternatives based on scale so it feels smarter
-      if (sec < 60){
-        pool.push(
-          "⚡ Blink and you’ll miss it.",
-          "⚡ This is basically one song chorus away."
-        );
-      }
-      if (sec >= 3600 * 24 * 2){
-        // Longer waits get a couple more “big” facts
-        const moonDistanceTrips = (CONST.speedOfLight_kmps * sec) / 384400; // light-to-moon
-        pool.push(
-          `🌙 A beam of light could reach the Moon about ${fmtSmart(moonDistanceTrips)} ${pluralWord(moonDistanceTrips,"time","times")}.`,
-          `🛰️ The ISS would rack up about ${fmtSmart(issOrbits)} orbits in that time.`
-        );
-      }
 
       return pool;
     }
@@ -908,8 +845,6 @@
           return fact;
         }
       }
-
-      // exhausted -> allow repeats
       seenFacts.clear();
       return pool[0] || "Fun fact loading…";
     }
@@ -955,26 +890,26 @@
         secondsBox.style.borderColor = "rgba(190,120,255,.32)";
       }
 
-      // PROGRESS BAR (ADDED)
-      // percent remaining across the full window from SINCE -> TARGET
-      const pct = Math.max(0, Math.min(100, (sec / TOTAL_WINDOW_SECONDS) * 100));
+      // ✅ PROGRESS BAR (FIXED: counts UP 0% -> 100%)
+      const elapsedSeconds = Math.max(0, Math.min(TOTAL_WINDOW_SECONDS, TOTAL_WINDOW_SECONDS - sec));
+      const pct = Math.max(0, Math.min(100, (elapsedSeconds / TOTAL_WINDOW_SECONDS) * 100));
+
       progressFill.style.width = pct + "%";
       if (pctLeft) pctLeft.textContent = (pct < 10 ? pct.toFixed(1) : Math.round(pct)) + "%";
-
       if (progressBarEl) progressBarEl.setAttribute("aria-valuenow", String(Math.round(pct)));
 
       if (sec <= 0){
         if (progressHint) progressHint.textContent = "Completed ❤️";
-      } else if (pct > 70){
-        if (progressHint) progressHint.textContent = "Plenty of time left…";
-      } else if (pct > 40){
-        if (progressHint) progressHint.textContent = "Past halfway.";
-      } else if (pct > 15){
-        if (progressHint) progressHint.textContent = "Final stretch.";
+      } else if (pct < 30){
+        if (progressHint) progressHint.textContent = "Just getting started…";
+      } else if (pct < 60){
+        if (progressHint) progressHint.textContent = "Past the first stretch.";
+      } else if (pct < 85){
+        if (progressHint) progressHint.textContent = "More than halfway.";
       } else {
         if (progressHint) progressHint.textContent = "Almost there.";
       }
-      // /PROGRESS BAR (ADDED)
+      // /✅ PROGRESS BAR (FIXED)
     }
 
     function tickSince(){

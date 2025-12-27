@@ -228,6 +228,55 @@
 
     .hint{ display:none; }
 
+    /* ================================
+       PROGRESS BAR (ADDED)
+       ================================ */
+    .progressWrap{
+      margin: 10px auto 2px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+      max-width: 760px;
+    }
+    .progressTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:8px;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(234,240,255,.86);
+      font-weight: 900;
+    }
+    .progressBar{
+      height: 14px;
+      border-radius: 999px;
+      overflow:hidden;
+      background: rgba(190,120,255,.10);
+      border: 1px solid rgba(190,120,255,.22);
+    }
+    .progressFill{
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg,
+        rgba(190,120,255,.85),
+        rgba(120,160,255,.75),
+        rgba(255,120,200,.70)
+      );
+      transition: width 650ms ease;
+    }
+    .progressHint{
+      margin-top:8px;
+      font-size: 13px;
+      color: rgba(234,240,255,.86);
+      opacity: .92;
+      font-weight: 750;
+    }
+
     .sectionTitle{
       font-size:32px;
       margin: 18px 0 14px;
@@ -364,6 +413,19 @@
           </div>
         </div>
 
+        <!-- PROGRESS BAR (ADDED) -->
+        <div class="progressWrap" id="progressWrap" aria-label="Time remaining progress">
+          <div class="progressTop">
+            <span>Time remaining</span>
+            <span id="pctLeft">—%</span>
+          </div>
+          <div class="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="progressFill" id="progressFill"></div>
+          </div>
+          <div class="progressHint" id="progressHint">—</div>
+        </div>
+        <!-- /PROGRESS BAR (ADDED) -->
+
         <div class="rotator" id="rotatorCountdown"></div>
 
         <div class="sectionTitle">That’s</div>
@@ -437,6 +499,10 @@
     const TARGET = Date.UTC(2026,0,4,17,0,0);
     const SINCE  = Date.UTC(2025,11,19,21,20,0);
 
+    // PROGRESS BAR (ADDED)
+    const TOTAL_WINDOW_SECONDS = Math.max(1, Math.floor((TARGET - SINCE) / 1000));
+    // /PROGRESS BAR (ADDED)
+
     const d=document.getElementById("d"),
           h=document.getElementById("h"),
           m=document.getElementById("m"),
@@ -453,6 +519,13 @@
     const milestoneCountdown = document.getElementById("milestoneCountdown");
     const rotatorCountdown = document.getElementById("rotatorCountdown");
     const secondsBox = document.getElementById("secondsBox");
+
+    // PROGRESS BAR (ADDED)
+    const pctLeft = document.getElementById("pctLeft");
+    const progressFill = document.getElementById("progressFill");
+    const progressHint = document.getElementById("progressHint");
+    const progressBarEl = document.querySelector(".progressBar");
+    // /PROGRESS BAR (ADDED)
 
     const sd=document.getElementById("sd"),
           sh=document.getElementById("sh"),
@@ -881,6 +954,27 @@
       } else {
         secondsBox.style.borderColor = "rgba(190,120,255,.32)";
       }
+
+      // PROGRESS BAR (ADDED)
+      // percent remaining across the full window from SINCE -> TARGET
+      const pct = Math.max(0, Math.min(100, (sec / TOTAL_WINDOW_SECONDS) * 100));
+      progressFill.style.width = pct + "%";
+      if (pctLeft) pctLeft.textContent = (pct < 10 ? pct.toFixed(1) : Math.round(pct)) + "%";
+
+      if (progressBarEl) progressBarEl.setAttribute("aria-valuenow", String(Math.round(pct)));
+
+      if (sec <= 0){
+        if (progressHint) progressHint.textContent = "Completed ❤️";
+      } else if (pct > 70){
+        if (progressHint) progressHint.textContent = "Plenty of time left…";
+      } else if (pct > 40){
+        if (progressHint) progressHint.textContent = "Past halfway.";
+      } else if (pct > 15){
+        if (progressHint) progressHint.textContent = "Final stretch.";
+      } else {
+        if (progressHint) progressHint.textContent = "Almost there.";
+      }
+      // /PROGRESS BAR (ADDED)
     }
 
     function tickSince(){
